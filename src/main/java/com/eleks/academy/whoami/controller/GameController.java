@@ -6,6 +6,7 @@ import com.eleks.academy.whoami.model.request.Message;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
 import com.eleks.academy.whoami.model.response.GameDetails;
 import com.eleks.academy.whoami.model.response.GameLight;
+import com.eleks.academy.whoami.model.response.QuickGame;
 import com.eleks.academy.whoami.model.response.TurnDetails;
 import com.eleks.academy.whoami.service.GameService;
 import lombok.RequiredArgsConstructor;
@@ -94,5 +95,11 @@ public class GameController {
 		this.gameService.answerQuestion(id, player, message.getMessage());
 
 	}
-
+	
+	@PostMapping("/quick")
+	@ResponseStatus(HttpStatus.OK)
+	public QuickGame findQuickGame(@RequestHeader(PLAYER) String player) {
+		return gameService.findQuickGame(player);
+	}
+	
 }

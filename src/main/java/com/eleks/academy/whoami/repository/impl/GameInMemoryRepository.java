@@ -6,8 +6,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Repository
@@ -23,8 +25,9 @@ public class GameInMemoryRepository implements GameRepository {
 				game.findPlayer(player).isPresent();
 
 		return this.games.values()
-				.stream()
-				.filter(freeToJoin.or(playersGame));
+				.stream();
+//			Prevent 500 response & NullPpointExc
+//				.filter(freeToJoin.or(playersGame));
 	}
 
 	@Override
@@ -39,4 +42,15 @@ public class GameInMemoryRepository implements GameRepository {
 		return Optional.ofNullable(this.games.get(id));
 	}
 
+	@Override
+	public Map<String, SynchronousGame> findAvailableQuickGames() {
+		return filterByValue(games, availableStatus -> availableStatus.isGameAvailable() == true);
+	}
+	
+	private static <K, V> Map<K, V> filterByValue(Map<K, V> map, Predicate<V> predicate) {
+	    return map.entrySet()
+	            .stream()
+	            .filter(entry -> predicate.test(entry.getValue()))
+	            .collect(Collectors.toConcurrentMap(Entry::getKey, Entry::getValue));
+	}
 }

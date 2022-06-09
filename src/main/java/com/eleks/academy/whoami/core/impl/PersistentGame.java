@@ -1,5 +1,13 @@
 package com.eleks.academy.whoami.core.impl;
 
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Function;
+
 import com.eleks.academy.whoami.core.Game;
 import com.eleks.academy.whoami.core.SynchronousGame;
 import com.eleks.academy.whoami.core.SynchronousPlayer;
@@ -8,19 +16,15 @@ import com.eleks.academy.whoami.core.state.GameState;
 import com.eleks.academy.whoami.core.state.WaitingForPlayers;
 import com.eleks.academy.whoami.model.response.PlayerWithState;
 
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Function;
-
 public class PersistentGame implements Game, SynchronousGame {
 
-	private final Lock turnLock = new ReentrantLock();
 	private final String id;
+	
+	private StringBuilder currentStatus;
+	
+	private int maxPlayers;
+	
+	private final List<SynchronousPlayer> players = new CopyOnWriteArrayList<>();
 
 	private final Queue<GameState> turns = new LinkedBlockingQueue<>();
 
@@ -35,6 +39,16 @@ public class PersistentGame implements Game, SynchronousGame {
 				Instant.now().toEpochMilli(),
 				Double.valueOf(Math.random() * 999).intValue());
 
+	}
+	
+	public PersistentGame(SynchronousPlayer player, Integer maxPlayers) {
+		this.id = String.format("%d-%d",
+				Instant.now().toEpochMilli(),
+				Double.valueOf(Math.random() * 999).intValue());
+		
+		this.maxPlayers = maxPlayers;
+		this.players.add(player);
+		this.currentStatus = new StringBuilder("waiting-for-players");
 	}
 
 	@Override
@@ -125,5 +139,32 @@ public class PersistentGame implements Game, SynchronousGame {
 		return Optional.ofNullable(source)
 				.map(mapper)
 				.orElse(fallback);
+	}
+
+	@Override
+	public void addPlayer(SynchronousPlayer player) {
+		players.add(player);
+	}
+
+	@Override
+	public List<SynchronousPlayer> getPlayers() {
+		return players;
+	}
+
+	@Override
+	public boolean isGameAvailable() {
+		if(players.size() == maxPlayers) {
+			setCurrentStatus("suggesting-characters");
+		}
+		return players.size() < maxPlayers;
+	}
+
+	private void setCurrentStatus(String status) {
+		currentStatus = new StringBuilder(status);
+	}
+
+	@Override
+	public String getCurrentStatus() {
+		return currentStatus.toString();
 	}
 }

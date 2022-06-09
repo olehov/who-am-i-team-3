@@ -3,10 +3,12 @@ package com.eleks.academy.whoami.service.impl;
 import com.eleks.academy.whoami.core.SynchronousGame;
 import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.core.impl.PersistentGame;
+import com.eleks.academy.whoami.core.impl.PersistentPlayer;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
 import com.eleks.academy.whoami.model.response.GameDetails;
 import com.eleks.academy.whoami.model.response.GameLight;
+import com.eleks.academy.whoami.model.response.QuickGame;
 import com.eleks.academy.whoami.model.response.TurnDetails;
 import com.eleks.academy.whoami.repository.GameRepository;
 import com.eleks.academy.whoami.service.GameService;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -90,4 +93,32 @@ public class GameServiceImpl implements GameService {
 
 	}
 
+	@Override
+	public QuickGame findQuickGame(String player) {
+		Map<String, SynchronousGame> games = gameRepository.findAvailableQuickGames();
+		
+		if (games.isEmpty()) {
+			return createQuickGame(player);
+		}
+		
+		var FirstGame = games.keySet().stream().findFirst().get();
+		enrollToQuickGame(games.get(FirstGame).getId(), player);
+		return QuickGame.of(games.get(FirstGame));
+	}
+	
+	private QuickGame createQuickGame(String player) {
+		final var quickGame = gameRepository.save(
+				new PersistentGame(new PersistentPlayer(player), 4));
+		
+		return QuickGame.of(quickGame);
+	}
+	
+	private void enrollToQuickGame(String gameId, String player) {
+		gameRepository.findById(gameId)
+			.ifPresentOrElse(game -> game.addPlayer(new PersistentPlayer(player)),
+					() -> {
+						throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "enroll-to-quick-game");
+					}
+			);
+	}
 }

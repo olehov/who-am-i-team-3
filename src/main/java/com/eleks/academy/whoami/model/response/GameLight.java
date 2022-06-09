@@ -19,7 +19,8 @@ public class GameLight {
 	public static GameLight of(SynchronousGame game) {
 		return GameLight.builder()
 				.id(game.getId())
-				.status(game.getStatus())
+				// status for prevent 500 response
+				.status(game.getCurrentStatus())
 				.build();
 	}
 
