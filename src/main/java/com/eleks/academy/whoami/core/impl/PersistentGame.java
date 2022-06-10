@@ -20,11 +20,9 @@ public class PersistentGame implements Game, SynchronousGame {
 
 	private final String id;
 	
-	private StringBuilder currentStatus;
-	
 	private int maxPlayers;
 	
-	private final List<SynchronousPlayer> players = new CopyOnWriteArrayList<>();
+	private List<PlayerWithState> gamePlayers = new CopyOnWriteArrayList<>();
 
 	private final Queue<GameState> turns = new LinkedBlockingQueue<>();
 
@@ -41,14 +39,13 @@ public class PersistentGame implements Game, SynchronousGame {
 
 	}
 	
-	public PersistentGame(SynchronousPlayer player, Integer maxPlayers) {
+	public PersistentGame(Integer maxPlayers) {
 		this.id = String.format("%d-%d",
 				Instant.now().toEpochMilli(),
 				Double.valueOf(Math.random() * 999).intValue());
-		
+
 		this.maxPlayers = maxPlayers;
-		this.players.add(player);
-		this.currentStatus = new StringBuilder("waiting-for-players");
+		this.turns.add(new WaitingForPlayers(this.maxPlayers));
 	}
 
 	@Override
@@ -63,8 +60,9 @@ public class PersistentGame implements Game, SynchronousGame {
 
 	@Override
 	public SynchronousPlayer enrollToGame(String player) {
-		// TODO: Add player to players list
-		return new PersistentPlayer(player);
+		var newPlayer = turns.peek().add(new PersistentPlayer(player));
+		gamePlayers.add(new PlayerWithState(newPlayer, null, null));
+		return newPlayer;
 	}
 
 	@Override
@@ -89,7 +87,10 @@ public class PersistentGame implements Game, SynchronousGame {
 
 	@Override
 	public boolean isAvailable() {
-		return this.turns.peek() instanceof WaitingForPlayers;
+		if (gamePlayers.size() == maxPlayers && turns.peek() instanceof WaitingForPlayers) {
+			turns.add(turns.poll().next());
+		}
+		return gamePlayers.size() < maxPlayers; 
 	}
 
 	@Override
@@ -100,7 +101,7 @@ public class PersistentGame implements Game, SynchronousGame {
 	@Override
 	public List<PlayerWithState> getPlayersInGame() {
 		// TODO: Implement
-		return null;
+		return gamePlayers;
 	}
 
 	@Override
@@ -141,30 +142,4 @@ public class PersistentGame implements Game, SynchronousGame {
 				.orElse(fallback);
 	}
 
-	@Override
-	public void addPlayer(SynchronousPlayer player) {
-		players.add(player);
-	}
-
-	@Override
-	public List<SynchronousPlayer> getPlayers() {
-		return players;
-	}
-
-	@Override
-	public boolean isGameAvailable() {
-		if(players.size() == maxPlayers) {
-			setCurrentStatus("suggesting-characters");
-		}
-		return players.size() < maxPlayers;
-	}
-
-	private void setCurrentStatus(String status) {
-		currentStatus = new StringBuilder(status);
-	}
-
-	@Override
-	public String getCurrentStatus() {
-		return currentStatus.toString();
-	}
 }

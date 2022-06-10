@@ -97,9 +97,10 @@ public class GameController {
 	}
 	
 	@PostMapping("/quick")
-	@ResponseStatus(HttpStatus.OK)
-	public QuickGame findQuickGame(@RequestHeader(PLAYER) String player) {
-		return gameService.findQuickGame(player);
+	public ResponseEntity<QuickGame> findQuickGame(@RequestHeader(PLAYER) String player) {
+		return gameService.findQuickGame(player)
+				.map(ResponseEntity::ok)
+				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 	
 }

@@ -3,7 +3,6 @@ package com.eleks.academy.whoami.model.response;
 import java.util.List;
 
 import com.eleks.academy.whoami.core.SynchronousGame;
-import com.eleks.academy.whoami.core.SynchronousPlayer;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,9 +28,9 @@ public class QuickGame {
 	public static QuickGame of(SynchronousGame game) {
 		return QuickGame.builder()
 				.id(game.getId())
-				.status(game.getCurrentStatus())
-				.accessibility(game.isGameAvailable())
-				.players(game.getPlayers().stream().map(SynchronousPlayer::getName).toList())
+				.status(game.getStatus())
+				.accessibility(game.isAvailable())
+				.players(game.getPlayersInGame().stream().map(PlayerWithState::getPlayer).map(p -> p.getName()).toList())
 				.turn(game.getTurn())
 				.build();
 	}

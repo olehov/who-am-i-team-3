@@ -1,9 +1,16 @@
 package com.eleks.academy.whoami.service.impl;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.eleks.academy.whoami.core.SynchronousGame;
 import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.core.impl.PersistentGame;
-import com.eleks.academy.whoami.core.impl.PersistentPlayer;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
 import com.eleks.academy.whoami.model.response.GameDetails;
@@ -12,14 +19,8 @@ import com.eleks.academy.whoami.model.response.QuickGame;
 import com.eleks.academy.whoami.model.response.TurnDetails;
 import com.eleks.academy.whoami.repository.GameRepository;
 import com.eleks.academy.whoami.service.GameService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -43,12 +44,16 @@ public class GameServiceImpl implements GameService {
 
 	@Override
 	public SynchronousPlayer enrollToGame(String id, String player) {
-		return this.gameRepository.findById(id)
-				.filter(SynchronousGame::isAvailable)
-				.map(game -> game.enrollToGame(player))
-				.orElseThrow(
-						() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot enroll to a game")
-				);
+
+		final SynchronousGame game = gameRepository.findById(id).get();
+		Optional<SynchronousPlayer> o = game.findPlayer(player);
+		
+		if (o.isPresent()) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Already in game.");
+		}
+		
+		return game.enrollToGame(player);
+				
 	}
 
 	@Override
@@ -94,31 +99,22 @@ public class GameServiceImpl implements GameService {
 	}
 
 	@Override
-	public QuickGame findQuickGame(String player) {
+	public Optional<QuickGame> findQuickGame(String player) {
 		Map<String, SynchronousGame> games = gameRepository.findAvailableQuickGames();
 		
 		if (games.isEmpty()) {
-			return createQuickGame(player);
+			var game = createQuickGame();
+			enrollToGame(game.getId(), player);
+			return gameRepository.findById(game.getId()).map(QuickGame::of); 
 		}
 		
 		var FirstGame = games.keySet().stream().findFirst().get();
-		enrollToQuickGame(games.get(FirstGame).getId(), player);
-		return QuickGame.of(games.get(FirstGame));
+		enrollToGame(games.get(FirstGame).getId(), player);
+		return gameRepository.findById(games.get(FirstGame).getId()).map(QuickGame::of);
 	}
 	
-	private QuickGame createQuickGame(String player) {
-		final var quickGame = gameRepository.save(
-				new PersistentGame(new PersistentPlayer(player), 4));
-		
-		return QuickGame.of(quickGame);
+	private QuickGame createQuickGame() {
+		return QuickGame.of(gameRepository.save(new PersistentGame(4)));
 	}
 	
-	private void enrollToQuickGame(String gameId, String player) {
-		gameRepository.findById(gameId)
-			.ifPresentOrElse(game -> game.addPlayer(new PersistentPlayer(player)),
-					() -> {
-						throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "enroll-to-quick-game");
-					}
-			);
-	}
 }

@@ -28,11 +28,4 @@ public interface SynchronousGame {
 
 	SynchronousGame start();
 
-	void addPlayer(SynchronousPlayer player);
-	
-	List<SynchronousPlayer> getPlayers();
-	 
-	boolean isGameAvailable();
-	
-	String getCurrentStatus();
 }
