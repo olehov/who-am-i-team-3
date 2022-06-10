@@ -43,16 +43,16 @@ public class GameServiceImpl implements GameService {
 	}
 
 	@Override
-	public SynchronousPlayer enrollToGame(String id, String player) {
+	public SynchronousPlayer enrollToGame(String id, String playerId) {
 
 		final SynchronousGame game = gameRepository.findById(id).get();
-		Optional<SynchronousPlayer> o = game.findPlayer(player);
+		Optional<SynchronousPlayer> player = game.findPlayer(playerId);
 		
-		if (o.isPresent()) {
+		if (player.isPresent()) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Already in game.");
 		}
 		
-		return game.enrollToGame(player);
+		return game.enrollToGame(playerId);
 				
 	}
 
