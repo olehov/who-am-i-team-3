@@ -116,5 +116,15 @@ public class GameServiceImpl implements GameService {
 	private QuickGame createQuickGame() {
 		return QuickGame.of(gameRepository.save(new PersistentGame(4)));
 	}
+
+	@Override
+	public void leaveGame(String id, String player) {
+		this.gameRepository.findById(id)
+			.ifPresentOrElse(game -> game.deletePlayerFromGame(player), 
+					() -> {
+						throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+					}
+			);
+	}
 	
 }

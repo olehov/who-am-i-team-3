@@ -28,4 +28,6 @@ public interface SynchronousGame {
 
 	SynchronousGame start();
 
+	void deletePlayerFromGame(String player);
+
 }

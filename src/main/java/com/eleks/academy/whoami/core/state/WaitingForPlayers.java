@@ -35,5 +35,9 @@ public final class WaitingForPlayers extends AbstractGameState {
 		players.put(player.getName(), player);
 		return player;
 	}
- 
+	
+	@Override
+	public void remove(String player) {
+		this.players.remove(player);
+	}
 }

@@ -30,4 +30,8 @@ public abstract sealed class AbstractGameState implements GameState
 	public SynchronousPlayer add(SynchronousPlayer player) {
 		return player;
 	}
+	
+	@Override
+	public void remove(String player) {}
+	
 }

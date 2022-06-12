@@ -64,7 +64,13 @@ public class PersistentGame implements Game, SynchronousGame {
 		gamePlayers.add(new PlayerWithState(newPlayer, null, null));
 		return newPlayer;
 	}
-
+	
+	@Override
+	public void deletePlayerFromGame(String player) {
+		turns.peek().remove(player);
+		gamePlayers.removeIf(p -> p.getPlayer().getName().contentEquals(player));
+	}
+	
 	@Override
 	public String getTurn() {
 		return this.applyIfPresent(this.turns.peek(), GameState::getCurrentTurn);
@@ -90,7 +96,7 @@ public class PersistentGame implements Game, SynchronousGame {
 		if (gamePlayers.size() == maxPlayers && turns.peek() instanceof WaitingForPlayers) {
 			turns.add(turns.poll().next());
 		}
-		return gamePlayers.size() < maxPlayers; 
+		return gamePlayers.size() < maxPlayers && turns.peek() instanceof WaitingForPlayers; 
 	}
 
 	@Override
