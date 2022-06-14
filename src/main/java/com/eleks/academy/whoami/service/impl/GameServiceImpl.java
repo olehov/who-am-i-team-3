@@ -103,7 +103,7 @@ public class GameServiceImpl implements GameService {
 		Map<String, SynchronousGame> games = gameRepository.findAvailableQuickGames();
 		
 		if (games.isEmpty()) {
-			var game = createQuickGame();
+			final SynchronousGame game = gameRepository.save(new PersistentGame(4));
 			enrollToGame(game.getId(), player);
 			return gameRepository.findById(game.getId()).map(QuickGame::of); 
 		}
@@ -111,10 +111,6 @@ public class GameServiceImpl implements GameService {
 		var FirstGame = games.keySet().stream().findFirst().get();
 		enrollToGame(games.get(FirstGame).getId(), player);
 		return gameRepository.findById(games.get(FirstGame).getId()).map(QuickGame::of);
-	}
-	
-	private QuickGame createQuickGame() {
-		return QuickGame.of(gameRepository.save(new PersistentGame(4)));
 	}
 	
 }
