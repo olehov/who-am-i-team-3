@@ -103,7 +103,7 @@ public class GameServiceImpl implements GameService {
 		Map<String, SynchronousGame> games = gameRepository.findAvailableQuickGames();
 		
 		if (games.isEmpty()) {
-			var game = createQuickGame();
+			final SynchronousGame game = gameRepository.save(new PersistentGame(4));
 			enrollToGame(game.getId(), player);
 			return gameRepository.findById(game.getId()).map(QuickGame::of); 
 		}
