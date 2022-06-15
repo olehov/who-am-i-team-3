@@ -19,30 +19,26 @@ import com.eleks.academy.whoami.model.response.PlayerWithState;
 public class PersistentGame implements Game, SynchronousGame {
 
 	private final String id;
-	
+
 	private int maxPlayers;
-	
+
 	private List<PlayerWithState> gamePlayers = new CopyOnWriteArrayList<>();
 
 	private final Queue<GameState> turns = new LinkedBlockingQueue<>();
 
 	/**
-	 * Creates a new game (game room) and makes a first enrolment turn by a current player
-	 * so that he won't have to enroll to the game he created
+	 * Creates a new game (game room) and makes a first enrolment turn by a current
+	 * player so that he won't have to enroll to the game he created
 	 *
 	 * @param hostPlayer player to initiate a new game
 	 */
 	public PersistentGame(String hostPlayer, Integer maxPlayers) {
-		this.id = String.format("%d-%d",
-				Instant.now().toEpochMilli(),
-				Double.valueOf(Math.random() * 999).intValue());
+		this.id = String.format("%d-%d", Instant.now().toEpochMilli(), Double.valueOf(Math.random() * 999).intValue());
 
 	}
-	
+
 	public PersistentGame(Integer maxPlayers) {
-		this.id = String.format("%d-%d",
-				Instant.now().toEpochMilli(),
-				Double.valueOf(Math.random() * 999).intValue());
+		this.id = String.format("%d-%d", Instant.now().toEpochMilli(), Double.valueOf(Math.random() * 999).intValue());
 
 		this.maxPlayers = maxPlayers;
 		this.turns.add(new WaitingForPlayers(this.maxPlayers));
@@ -63,6 +59,18 @@ public class PersistentGame implements Game, SynchronousGame {
 		var newPlayer = turns.peek().add(new PersistentPlayer(player));
 		gamePlayers.add(new PlayerWithState(newPlayer, null, null));
 		return newPlayer;
+	}
+
+	/*
+	 * TODO: refactor method
+	 * @return {@code true} if player were removed or {@code false} if player not in game
+	 * (?)@throws some custom gameException?
+	 * 
+	 */
+	@Override
+	public void deletePlayerFromGame(String player) {
+		turns.peek().remove(player);
+		gamePlayers.removeIf(p -> p.getPlayer().getName().contentEquals(player));
 	}
 
 	@Override
@@ -90,7 +98,7 @@ public class PersistentGame implements Game, SynchronousGame {
 		if (gamePlayers.size() == maxPlayers && turns.peek() instanceof WaitingForPlayers) {
 			turns.add(turns.poll().next());
 		}
-		return gamePlayers.size() < maxPlayers; 
+		return gamePlayers.size() < maxPlayers && turns.peek() instanceof WaitingForPlayers;
 	}
 
 	@Override
@@ -108,7 +116,6 @@ public class PersistentGame implements Game, SynchronousGame {
 	public boolean isFinished() {
 		return this.turns.isEmpty();
 	}
-
 
 	@Override
 	public boolean makeTurn() {
@@ -137,9 +144,7 @@ public class PersistentGame implements Game, SynchronousGame {
 	}
 
 	private <T, R> R applyIfPresent(T source, Function<T, R> mapper, R fallback) {
-		return Optional.ofNullable(source)
-				.map(mapper)
-				.orElse(fallback);
+		return Optional.ofNullable(source).map(mapper).orElse(fallback);
 	}
 
 }

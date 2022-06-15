@@ -8,6 +8,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import org.junit.jupiter.api.Assertions;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +20,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import org.springframework.web.server.ResponseStatusException;
 
 import com.eleks.academy.whoami.core.SynchronousGame;
 import com.eleks.academy.whoami.core.impl.PersistentGame;
@@ -112,4 +116,28 @@ class GameServiceImplTest {
 		verify(mockGameRepository, times(2)).findById(eq(createdGame.getId()));
 	}
 	
+  @Test
+	void leaveGameSuccessfulTest() {
+		SynchronousGame game = new PersistentGame(4);
+		Optional<SynchronousGame> gameById = Optional.of(game);
+
+		when(mockGameRepository.findById(game.getId())).thenReturn(gameById);
+		
+		Assertions.assertDoesNotThrow(() -> gameService.leaveGame(game.getId(), "player"));
+		
+		verify(mockGameRepository, times(1)).findById(game.getId());
+	}
+	
+  @Test
+	void leaveGameFailedWithNotFoundTest() {
+		final String id = "542332";
+		Optional<SynchronousGame> gameById = Optional.empty();
+		
+		when(mockGameRepository.findById(eq(id))).thenReturn(gameById);
+		
+		Assertions.assertThrows(ResponseStatusException.class, () -> gameService.leaveGame(id, "player"));
+		
+		verify(mockGameRepository, times(1)).findById(eq(id));
+	}
+  
 }

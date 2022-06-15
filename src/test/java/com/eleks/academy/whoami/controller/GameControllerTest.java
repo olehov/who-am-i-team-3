@@ -1,30 +1,22 @@
 package com.eleks.academy.whoami.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.eleks.academy.whoami.configuration.GameControllerAdvice;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
 import com.eleks.academy.whoami.model.response.GameDetails;
 import com.eleks.academy.whoami.model.response.QuickGame;
 import com.eleks.academy.whoami.service.impl.GameServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.times;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
 import java.util.Optional;
@@ -101,6 +93,15 @@ class GameControllerTest {
 				.andExpect(status().isOk());
 		verify(gameService, times(1)).suggestCharacter(eq("1234"), eq("player"), any(CharacterSuggestion.class));
 	}
+	
+	@Test
+	void leaveGameTest() throws Exception {
+		final String id = "686863";
+		
+		this.mockMvc.perform(MockMvcRequestBuilders.delete("/games/{id}/leave", id)
+					.header("X-Player", "Test-Player"))
+		.andExpect(status().isOk());
+  }
 
 	@Test
 	void findQuickGameSuccessful() throws Exception {
@@ -142,7 +143,13 @@ class GameControllerTest {
 	}
 	
 	@Test
-	void leaveGame() {
+	void leaveGameTest() throws Exception {
+		final String id = "686863";
+		
+		this.mockMvc.perform(MockMvcRequestBuilders.delete("/games/{id}/leave", id)
+					.header("X-Player", "Test-Player"))
+		.andExpect(status().isOk());
 		
 	}
+  
 }

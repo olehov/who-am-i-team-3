@@ -48,7 +48,12 @@ public final class SuggestingCharacters extends AbstractGameState {
 	public Optional<SynchronousPlayer> findPlayer(String player) {
 		return Optional.ofNullable(this.players.get(player));
 	}
-
+	
+	@Override
+	public void remove(String player) {
+		this.players.remove(player);
+	}
+	
 	// TODO: Consider extracting into {@link GameState}
 	private Boolean finished() {
 		final var enoughCharacters = Optional.of(this.suggestedCharacters)

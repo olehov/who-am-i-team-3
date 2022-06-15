@@ -22,4 +22,5 @@ class GameInMemoryRepositoryTest {
 		
 		assertThat(gameRepository.findAvailableQuickGames()).isNotNull().isNotEmpty();
 	}
+
 }

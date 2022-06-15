@@ -12,6 +12,8 @@ public sealed interface GameState permits AbstractGameState {
 
 	SynchronousPlayer add(SynchronousPlayer player);
 	
+	void remove(String player);
+	
 	/**
 	 * Used for presentation purposes only
 	 *
