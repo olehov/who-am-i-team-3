@@ -1,5 +1,7 @@
 package com.eleks.academy.whoami.core.state;
 
+import com.eleks.academy.whoami.core.SynchronousPlayer;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -14,7 +16,7 @@ public abstract sealed class AbstractGameState implements GameState
 	// TODO: Implement for each state
 	@Override
 	public String getStatus() {
-		return this.getClass().getName();
+		return this.getClass().getSimpleName();
 	}
 
 	/**
@@ -23,5 +25,9 @@ public abstract sealed class AbstractGameState implements GameState
 	public String getCurrentTurn() {
 		return null;
 	}
-
+	
+	@Override
+	public SynchronousPlayer add(SynchronousPlayer player) {
+		return player;
+	}
 }

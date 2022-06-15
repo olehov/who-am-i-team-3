@@ -1,5 +1,13 @@
 package com.eleks.academy.whoami.core.impl;
 
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Function;
+
 import com.eleks.academy.whoami.core.Game;
 import com.eleks.academy.whoami.core.SynchronousGame;
 import com.eleks.academy.whoami.core.SynchronousPlayer;
@@ -8,19 +16,13 @@ import com.eleks.academy.whoami.core.state.GameState;
 import com.eleks.academy.whoami.core.state.WaitingForPlayers;
 import com.eleks.academy.whoami.model.response.PlayerWithState;
 
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Function;
-
 public class PersistentGame implements Game, SynchronousGame {
 
-	private final Lock turnLock = new ReentrantLock();
 	private final String id;
+	
+	private int maxPlayers;
+	
+	private List<PlayerWithState> gamePlayers = new CopyOnWriteArrayList<>();
 
 	private final Queue<GameState> turns = new LinkedBlockingQueue<>();
 
@@ -36,6 +38,15 @@ public class PersistentGame implements Game, SynchronousGame {
 				Double.valueOf(Math.random() * 999).intValue());
 
 	}
+	
+	public PersistentGame(Integer maxPlayers) {
+		this.id = String.format("%d-%d",
+				Instant.now().toEpochMilli(),
+				Double.valueOf(Math.random() * 999).intValue());
+
+		this.maxPlayers = maxPlayers;
+		this.turns.add(new WaitingForPlayers(this.maxPlayers));
+	}
 
 	@Override
 	public Optional<SynchronousPlayer> findPlayer(String player) {
@@ -49,8 +60,9 @@ public class PersistentGame implements Game, SynchronousGame {
 
 	@Override
 	public SynchronousPlayer enrollToGame(String player) {
-		// TODO: Add player to players list
-		return new PersistentPlayer(player);
+		var newPlayer = turns.peek().add(new PersistentPlayer(player));
+		gamePlayers.add(new PlayerWithState(newPlayer, null, null));
+		return newPlayer;
 	}
 
 	@Override
@@ -75,7 +87,10 @@ public class PersistentGame implements Game, SynchronousGame {
 
 	@Override
 	public boolean isAvailable() {
-		return this.turns.peek() instanceof WaitingForPlayers;
+		if (gamePlayers.size() == maxPlayers && turns.peek() instanceof WaitingForPlayers) {
+			turns.add(turns.poll().next());
+		}
+		return gamePlayers.size() < maxPlayers; 
 	}
 
 	@Override
@@ -86,7 +101,7 @@ public class PersistentGame implements Game, SynchronousGame {
 	@Override
 	public List<PlayerWithState> getPlayersInGame() {
 		// TODO: Implement
-		return null;
+		return gamePlayers;
 	}
 
 	@Override
@@ -126,4 +141,5 @@ public class PersistentGame implements Game, SynchronousGame {
 				.map(mapper)
 				.orElse(fallback);
 	}
+
 }

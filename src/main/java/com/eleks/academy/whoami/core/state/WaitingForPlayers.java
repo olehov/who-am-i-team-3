@@ -15,11 +15,6 @@ public final class WaitingForPlayers extends AbstractGameState {
 		this.players = new HashMap<>(maxPlayers);
 	}
 
-	private WaitingForPlayers(int maxPlayers, Map<String, SynchronousPlayer> players) {
-		super(players.size(), maxPlayers);
-		this.players = players;
-	}
-
 	@Override
 	public GameState next() {
 		return new SuggestingCharacters(this.players);
@@ -34,5 +29,11 @@ public final class WaitingForPlayers extends AbstractGameState {
 	public int getPlayersInGame() {
 		return this.players.size();
 	}
-
+	
+	@Override
+	public SynchronousPlayer add(SynchronousPlayer player) {
+		players.put(player.getName(), player);
+		return player;
+	}
+ 
 }

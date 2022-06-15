@@ -10,6 +10,8 @@ public sealed interface GameState permits AbstractGameState {
 
 	Optional<SynchronousPlayer> findPlayer(String player);
 
+	SynchronousPlayer add(SynchronousPlayer player);
+	
 	/**
 	 * Used for presentation purposes only
 	 *
