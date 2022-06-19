@@ -18,6 +18,7 @@ import com.eleks.academy.whoami.core.exception.ErrorResponse;
 import com.eleks.academy.whoami.core.exception.GameException;
 import com.eleks.academy.whoami.core.exception.GameNotFoundException;
 import com.eleks.academy.whoami.core.exception.PlayerAlreadyInGameException;
+import com.eleks.academy.whoami.core.exception.PlayerNotFoundException;
 import com.eleks.academy.whoami.model.response.ApiError;
 
 @RestControllerAdvice
@@ -32,6 +33,12 @@ public class GameControllerAdvice extends ResponseEntityExceptionHandler {
 	@ExceptionHandler(GameNotFoundException.class)
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public ApiError handleGameNotFoundException(GameNotFoundException e) {
+		return e::getMessage;
+	}
+	
+	@ExceptionHandler(PlayerNotFoundException.class)
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public ApiError handlePlayerNotFoundException(PlayerNotFoundException e) {
 		return e::getMessage;
 	}
 	

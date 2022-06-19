@@ -13,6 +13,7 @@ import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.core.exception.GameException;
 import com.eleks.academy.whoami.core.exception.GameNotFoundException;
 import com.eleks.academy.whoami.core.exception.PlayerAlreadyInGameException;
+import com.eleks.academy.whoami.core.exception.PlayerNotFoundException;
 import com.eleks.academy.whoami.core.impl.PersistentGame;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
@@ -127,7 +128,7 @@ public class GameServiceImpl implements GameService {
 							}
 					);
 			this.gameRepository.deletePlayerByHeader(player);
-		} else throw new ResponseStatusException(HttpStatus.CONFLICT);
+		} else throw new PlayerNotFoundException("[" + player + "] not found in any game.");
 	}
 	
 }
