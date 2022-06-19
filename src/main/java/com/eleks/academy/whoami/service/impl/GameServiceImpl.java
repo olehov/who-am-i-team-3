@@ -10,6 +10,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.eleks.academy.whoami.core.SynchronousGame;
 import com.eleks.academy.whoami.core.SynchronousPlayer;
+import com.eleks.academy.whoami.core.exception.GameException;
+import com.eleks.academy.whoami.core.exception.GameNotFoundException;
+import com.eleks.academy.whoami.core.exception.PlayerAlreadyInGameException;
 import com.eleks.academy.whoami.core.impl.PersistentGame;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
@@ -46,7 +49,7 @@ public class GameServiceImpl implements GameService {
 	public SynchronousPlayer enrollToGame(String id, String player) {
 		
 		if (gameRepository.findPlayerByHeader(player).isPresent()) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+			throw new PlayerAlreadyInGameException("[" + player + "] already in other game.");
 		} else gameRepository.savePlayer(player);
 		
 		final SynchronousGame game = gameRepository.findById(id).get();
@@ -120,7 +123,7 @@ public class GameServiceImpl implements GameService {
 			this.gameRepository.findById(id)
 					.ifPresentOrElse(game -> game.deletePlayerFromGame(player), 
 							() -> {
-								throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+								throw new GameNotFoundException("Game with id[" + id + "] not found.");
 							}
 					);
 			this.gameRepository.deletePlayerByHeader(player);
