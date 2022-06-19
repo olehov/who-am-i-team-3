@@ -26,9 +26,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.eleks.academy.whoami.configuration.GameControllerAdvice;
+import com.eleks.academy.whoami.core.impl.PersistentPlayer;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
 import com.eleks.academy.whoami.model.response.GameDetails;
+import com.eleks.academy.whoami.model.response.PlayerWithState;
 import com.eleks.academy.whoami.model.response.QuickGame;
 import com.eleks.academy.whoami.service.impl.GameServiceImpl;
 
@@ -87,7 +89,8 @@ class GameControllerTest {
 				.andExpect(content().string("{\"message\":\"Validation failed!\"," +
 						"\"details\":[\"maxPlayers must not be null\"]}"));
 	}
-
+	
+	//TODO: refactor
 	@Test
 	void suggestCharacter() throws Exception {
 		doNothing().when(gameService).suggestCharacter(eq("1234"), eq("player"), any(CharacterSuggestion.class));
@@ -105,7 +108,7 @@ class GameControllerTest {
 	@Test
 	void findQuickGameSuccessful() throws Exception {
 		String playerId = "Test-Player";
-		List<String> players = List.of(playerId);
+		List<PlayerWithState> players = List.of(new PlayerWithState(new PersistentPlayer(playerId), null, null));
 
 		Optional<QuickGame> availableGame = Optional.of(new QuickGame("1111", "WaitingForPlayers", true, players, "null"));
 		

@@ -18,7 +18,12 @@ public abstract sealed class AbstractGameState implements GameState
 	public String getStatus() {
 		return this.getClass().getSimpleName();
 	}
-
+	
+	@Override
+	public boolean isReadyToStart() {
+		return false;
+	}
+	
 	/**
 	 * @return {@code null} as default implementation
 	 */
@@ -33,5 +38,8 @@ public abstract sealed class AbstractGameState implements GameState
 	
 	@Override
 	public void remove(String player) {}
+	
+	@Override
+	public void suggestCharacter(String player, String character) {}
 	
 }

@@ -13,26 +13,28 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class QuickGame {
-	
-	private String id;
+public class AllFields {
+
+private String id;
 	
 	private String status;
 	
 	private boolean accessibility;
 	
+	private boolean readyToStart;
+	
 	private List<PlayerWithState> players;
 	
 	private String turn;
 	
-	public static QuickGame of(SynchronousGame game) {
-		return QuickGame.builder()
+	public static AllFields of(SynchronousGame game) {
+		return AllFields.builder()
 				.id(game.getId())
 				.status(game.getStatus())
 				.accessibility(game.isAvailable())
+				.readyToStart(game.isReadyToStart())
 				.players(game.getPlayersInGame())
 				.turn(game.getTurn())
 				.build();
 	}
-
 }

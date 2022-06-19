@@ -32,7 +32,7 @@ public final class WaitingForPlayers extends AbstractGameState {
 	
 	@Override
 	public SynchronousPlayer add(SynchronousPlayer player) {
-		players.put(player.getName(), player);
+		players.put(player.getUserName(), player);
 		return player;
 	}
 	

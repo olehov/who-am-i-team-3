@@ -6,8 +6,10 @@ import java.util.Optional;
 import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
+import com.eleks.academy.whoami.model.response.AllFields;
 import com.eleks.academy.whoami.model.response.GameDetails;
 import com.eleks.academy.whoami.model.response.GameLight;
+import com.eleks.academy.whoami.model.response.PlayerSuggestion;
 import com.eleks.academy.whoami.model.response.QuickGame;
 import com.eleks.academy.whoami.model.response.TurnDetails;
 
@@ -21,7 +23,7 @@ public interface GameService {
 
 	Optional<GameDetails> findByIdAndPlayer(String id, String player);
 
-	void suggestCharacter(String id, String player, CharacterSuggestion suggestion);
+	Optional<PlayerSuggestion> suggestCharacter(String id, String player, CharacterSuggestion suggestion);
 
 	Optional<GameDetails> startGame(String id, String player);
 
@@ -36,5 +38,7 @@ public interface GameService {
 	Optional<QuickGame> findQuickGame(String player);
 
 	void leaveGame(String id, String player);
+
+	List<AllFields> findAllGamesInfo(String player);
 	
 }

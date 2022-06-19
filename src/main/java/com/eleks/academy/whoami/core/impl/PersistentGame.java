@@ -34,7 +34,6 @@ public class PersistentGame implements Game, SynchronousGame {
 	 */
 	public PersistentGame(String hostPlayer, Integer maxPlayers) {
 		this.id = String.format("%d-%d", Instant.now().toEpochMilli(), Double.valueOf(Math.random() * 999).intValue());
-
 	}
 
 	public PersistentGame(Integer maxPlayers) {
@@ -70,7 +69,7 @@ public class PersistentGame implements Game, SynchronousGame {
 	@Override
 	public void deletePlayerFromGame(String player) {
 		turns.peek().remove(player);
-		gamePlayers.removeIf(p -> p.getPlayer().getName().contentEquals(player));
+		gamePlayers.removeIf(p -> p.getPlayer().getUserName().contentEquals(player));
 	}
 
 	@Override
@@ -79,8 +78,13 @@ public class PersistentGame implements Game, SynchronousGame {
 	}
 
 	@Override
+	public void suggestChar(String player) {
+		turns.peek().suggestCharacter(player, findPlayer(player).get().getCharacter());
+	}
+	
+	@Override
 	public void askQuestion(String player, String message) {
-
+		// TODO: Implement method
 	}
 
 	@Override
@@ -90,9 +94,15 @@ public class PersistentGame implements Game, SynchronousGame {
 
 	@Override
 	public SynchronousGame start() {
-		return null;
+		//turns.add(turns.poll().next());
+		return this; 
 	}
-
+	
+	@Override
+	public boolean isReadyToStart() {
+		return this.turns.peek().isReadyToStart();
+	}
+	
 	@Override
 	public boolean isAvailable() {
 		if (gamePlayers.size() == maxPlayers && turns.peek() instanceof WaitingForPlayers) {
@@ -108,7 +118,6 @@ public class PersistentGame implements Game, SynchronousGame {
 
 	@Override
 	public List<PlayerWithState> getPlayersInGame() {
-		// TODO: Implement
 		return gamePlayers;
 	}
 

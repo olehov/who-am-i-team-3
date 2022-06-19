@@ -4,8 +4,10 @@ import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.Message;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
+import com.eleks.academy.whoami.model.response.AllFields;
 import com.eleks.academy.whoami.model.response.GameDetails;
 import com.eleks.academy.whoami.model.response.GameLight;
+import com.eleks.academy.whoami.model.response.PlayerSuggestion;
 import com.eleks.academy.whoami.model.response.QuickGame;
 import com.eleks.academy.whoami.model.response.TurnDetails;
 import com.eleks.academy.whoami.service.GameService;
@@ -30,7 +32,12 @@ public class GameController {
 	public List<GameLight> findAvailableGames(@RequestHeader(PLAYER) String player) {
 		return this.gameService.findAvailableGames(player);
 	}
-
+	
+	@GetMapping("/info")
+	public List<AllFields> findAllGamesInfo(@RequestHeader(PLAYER) String player) {
+		return this.gameService.findAllGamesInfo(player);
+	}
+	
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public GameDetails createGame(@RequestHeader(PLAYER) String player,
@@ -46,7 +53,6 @@ public class GameController {
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
-
 	@PostMapping("/{id}/players")
 	public SynchronousPlayer enrollToGame(@PathVariable("id") String id,
 										  @RequestHeader(PLAYER) String player) {
@@ -55,10 +61,13 @@ public class GameController {
 
 	@PostMapping("/{id}/characters")
 	@ResponseStatus(HttpStatus.OK)
-	public void suggestCharacter(@PathVariable("id") String id,
-								 @RequestHeader(PLAYER) String player,
-								 @Valid @RequestBody CharacterSuggestion suggestion) {
-		this.gameService.suggestCharacter(id, player, suggestion);
+	public ResponseEntity<PlayerSuggestion> suggestCharacter(@PathVariable("id") String id,
+															 @RequestHeader(PLAYER) String player,
+															 @Valid @RequestBody CharacterSuggestion suggestion) {
+		
+		return this.gameService.suggestCharacter(id, player, suggestion)
+				.map(ResponseEntity::ok)
+				.orElseGet(() -> ResponseEntity.badRequest().build());
 	}
 
 	@GetMapping("/{id}/turn")
@@ -68,7 +77,8 @@ public class GameController {
 				.map(ResponseEntity::ok)
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
-
+	
+	
 	@PostMapping("/{id}")
 	public ResponseEntity<GameDetails> startGame(@PathVariable("id") String id,
 												 @RequestHeader(PLAYER) String player) {
@@ -102,7 +112,7 @@ public class GameController {
 				.map(ResponseEntity::ok)
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
-	
+	//TODO: fix that other response when player not present
 	@DeleteMapping("/{id}/leave")
 	public void leaveGame(@PathVariable("id") String id,
 						  @RequestHeader(PLAYER) String player) {

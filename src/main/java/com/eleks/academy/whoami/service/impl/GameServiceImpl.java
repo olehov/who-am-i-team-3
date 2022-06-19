@@ -10,15 +10,16 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.eleks.academy.whoami.core.SynchronousGame;
 import com.eleks.academy.whoami.core.SynchronousPlayer;
-import com.eleks.academy.whoami.core.exception.GameException;
 import com.eleks.academy.whoami.core.exception.GameNotFoundException;
 import com.eleks.academy.whoami.core.exception.PlayerAlreadyInGameException;
 import com.eleks.academy.whoami.core.exception.PlayerNotFoundException;
 import com.eleks.academy.whoami.core.impl.PersistentGame;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
+import com.eleks.academy.whoami.model.response.AllFields;
 import com.eleks.academy.whoami.model.response.GameDetails;
 import com.eleks.academy.whoami.model.response.GameLight;
+import com.eleks.academy.whoami.model.response.PlayerSuggestion;
 import com.eleks.academy.whoami.model.response.QuickGame;
 import com.eleks.academy.whoami.model.response.TurnDetails;
 import com.eleks.academy.whoami.repository.GameRepository;
@@ -34,9 +35,7 @@ public class GameServiceImpl implements GameService {
 
 	@Override
 	public List<GameLight> findAvailableGames(String player) {
-		return this.gameRepository.findAllAvailable(player)
-				.map(GameLight::of)
-				.toList();
+		return this.gameRepository.findAllAvailable(player).map(GameLight::of).toList();
 	}
 
 	@Override
@@ -46,6 +45,7 @@ public class GameServiceImpl implements GameService {
 		return GameDetails.of(game);
 	}
 
+	//TODO: implement validations for create custom game
 	@Override
 	public SynchronousPlayer enrollToGame(String id, String player) {
 		
@@ -61,29 +61,40 @@ public class GameServiceImpl implements GameService {
 
 	@Override
 	public Optional<GameDetails> findByIdAndPlayer(String id, String player) {
-		return this.gameRepository.findById(id)
-				.filter(game -> game.findPlayer(player).isPresent())
+		return this.gameRepository.findById(id).filter(game -> game.findPlayer(player).isPresent())
 				.map(GameDetails::of);
 	}
 
+	/*
+	 *TODO: check gameState 
+	 */
 	@Override
-	public void suggestCharacter(String id, String player, CharacterSuggestion suggestion) {
+	public Optional<PlayerSuggestion> suggestCharacter(String id, String player, CharacterSuggestion suggestion) {
+
 		this.gameRepository.findById(id)
-				.flatMap(game -> game.findPlayer(player))
-				.ifPresent(p -> p.setCharacter(suggestion.getCharacter()));
+				.filter(g -> g.isAvailable() == false)
+				.map(game -> game.findPlayer(player).get())
+				.ifPresentOrElse(p -> p.suggest(suggestion), 
+						() -> {
+							throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+						}
+				);
+		
+		SynchronousPlayer ingamePlayer = gameRepository.findById(id).flatMap(game -> game.findPlayer(player)).get();
+		return Optional.of(PlayerSuggestion.of(ingamePlayer));
 	}
 
 	@Override
 	public Optional<GameDetails> startGame(String id, String player) {
 		return this.gameRepository.findById(id)
-				.map(SynchronousGame::start)
-				.map(GameDetails::of);
+							.filter(g -> g.isReadyToStart() == true)
+							.map(SynchronousGame::start)
+							.map(GameDetails::of);
 	}
 
 	@Override
 	public void askQuestion(String gameId, String player, String message) {
-		this.gameRepository.findById(gameId)
-				.ifPresent(game -> game.askQuestion(player, message));
+		this.gameRepository.findById(gameId).ifPresent(game -> game.askQuestion(player, message));
 	}
 
 	@Override
@@ -105,13 +116,13 @@ public class GameServiceImpl implements GameService {
 	public Optional<QuickGame> findQuickGame(String player) {
 		
 		Map<String, SynchronousGame> games = gameRepository.findAvailableQuickGames();
-		
+
 		if (games.isEmpty()) {
 			final SynchronousGame game = gameRepository.save(new PersistentGame(4));
 			enrollToGame(game.getId(), player);
-			return gameRepository.findById(game.getId()).map(QuickGame::of); 
+			return gameRepository.findById(game.getId()).map(QuickGame::of);
 		}
-		
+
 		var FirstGame = games.keySet().stream().findFirst().get();
 		enrollToGame(games.get(FirstGame).getId(), player);
 		return gameRepository.findById(games.get(FirstGame).getId()).map(QuickGame::of);
@@ -129,6 +140,12 @@ public class GameServiceImpl implements GameService {
 					);
 			this.gameRepository.deletePlayerByHeader(player);
 		} else throw new PlayerNotFoundException("[" + player + "] not found in any game.");
+
 	}
-	
+
+	@Override
+	public List<AllFields> findAllGamesInfo(String player) {
+		return this.gameRepository.findAllAvailable(player).map(AllFields::of).toList();
+	}
+
 }

@@ -21,6 +21,8 @@ public interface SynchronousGame {
 	boolean isAvailable();
 
 	String getTurn();
+	
+	void suggestChar(String player);
 
 	void askQuestion(String player, String message);
 
@@ -29,5 +31,7 @@ public interface SynchronousGame {
 	SynchronousGame start();
 
 	void deletePlayerFromGame(String player);
+
+	boolean isReadyToStart();
 
 }

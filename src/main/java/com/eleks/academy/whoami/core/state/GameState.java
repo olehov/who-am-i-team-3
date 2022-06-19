@@ -14,6 +14,17 @@ public sealed interface GameState permits AbstractGameState {
 	
 	void remove(String player);
 	
+	void suggestCharacter(String player, String character);
+	
+	/**
+	 * Used for presentation purposes only
+	 *
+	 * @return {@code true} if enough characters to start a game(switch GameState)
+	 * or {@code false} if not
+	 * 
+	 */
+	boolean isReadyToStart();
+	
 	/**
 	 * Used for presentation purposes only
 	 *
