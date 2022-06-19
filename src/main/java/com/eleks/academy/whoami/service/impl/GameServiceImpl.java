@@ -43,16 +43,15 @@ public class GameServiceImpl implements GameService {
 	}
 
 	@Override
-	public SynchronousPlayer enrollToGame(String id, String playerId) {
-
+	public SynchronousPlayer enrollToGame(String id, String player) {
+		
+		if (gameRepository.findPlayerByHeader(player).isPresent()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+		} else gameRepository.savePlayer(player);
+		
 		final SynchronousGame game = gameRepository.findById(id).get();
-		Optional<SynchronousPlayer> player = game.findPlayer(playerId);
 		
-		if (player.isPresent()) {
-			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Already in game.");
-		}
-		
-		return game.enrollToGame(playerId);
+		return game.enrollToGame(player);
 				
 	}
 
@@ -100,6 +99,7 @@ public class GameServiceImpl implements GameService {
 
 	@Override
 	public Optional<QuickGame> findQuickGame(String player) {
+		
 		Map<String, SynchronousGame> games = gameRepository.findAvailableQuickGames();
 		
 		if (games.isEmpty()) {
@@ -115,12 +115,16 @@ public class GameServiceImpl implements GameService {
 
 	@Override
 	public void leaveGame(String id, String player) {
-		this.gameRepository.findById(id)
-			.ifPresentOrElse(game -> game.deletePlayerFromGame(player), 
-					() -> {
-						throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-					}
-			);
+		
+		if (this.gameRepository.findPlayerByHeader(player).isPresent()) {
+			this.gameRepository.findById(id)
+					.ifPresentOrElse(game -> game.deletePlayerFromGame(player), 
+							() -> {
+								throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+							}
+					);
+			this.gameRepository.deletePlayerByHeader(player);
+		} else throw new ResponseStatusException(HttpStatus.CONFLICT);
 	}
 	
 }

@@ -16,4 +16,10 @@ public interface GameRepository {
 
 	Map<String, SynchronousGame> findAvailableQuickGames();
 
+	Optional<String> findPlayerByHeader(String player);
+
+	void savePlayer(String player);
+
+	void deletePlayerByHeader(String player);
+
 }
