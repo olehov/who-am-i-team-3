@@ -3,7 +3,6 @@ package com.eleks.academy.whoami.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -30,6 +29,8 @@ import com.eleks.academy.whoami.core.impl.PersistentPlayer;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
 import com.eleks.academy.whoami.model.response.GameDetails;
+import com.eleks.academy.whoami.model.response.LeaveModel;
+import com.eleks.academy.whoami.model.response.PlayerSuggestion;
 import com.eleks.academy.whoami.model.response.PlayerWithState;
 import com.eleks.academy.whoami.model.response.QuickGame;
 import com.eleks.academy.whoami.service.impl.GameServiceImpl;
@@ -90,27 +91,35 @@ class GameControllerTest {
 						"\"details\":[\"maxPlayers must not be null\"]}"));
 	}
 	
-	//TODO: refactor
 	@Test
 	void suggestCharacter() throws Exception {
-		doNothing().when(gameService).suggestCharacter(eq("1234"), eq("player"), any(CharacterSuggestion.class));
+		
+		final String header = "Test-Player";
+		Optional<PlayerSuggestion> response = Optional.of(new PlayerSuggestion(header, "Usop", "char"));
+		
+		when(gameService.suggestCharacter(eq("1234"), eq(header), any(CharacterSuggestion.class))).thenReturn(response);
+		
 		this.mockMvc.perform(
 						MockMvcRequestBuilders.post("/games/1234/characters")
-								.header("X-Player", "player")
+								.header("X-Player", header)
 								.contentType(MediaType.APPLICATION_JSON)
 								.content("{\n" +
+										"    \"nickname\": \" Usop\",\n" +
 										"    \"character\": \" char\"\n" +
 										"}"))
-				.andExpect(status().isOk());
-		verify(gameService, times(1)).suggestCharacter(eq("1234"), eq("player"), any(CharacterSuggestion.class));
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("username").value(header))
+				.andExpect(jsonPath("nickname").value("Usop"))
+				.andExpect(jsonPath("suggestion").value("char"));
+
+		verify(gameService, times(1)).suggestCharacter(eq("1234"), eq("Test-Player"), any(CharacterSuggestion.class));
 	}
 	
 	@Test
 	void findQuickGameSuccessful() throws Exception {
 		String playerId = "Test-Player";
-		List<PlayerWithState> players = List.of(new PlayerWithState(new PersistentPlayer(playerId), null, null));
 
-		Optional<QuickGame> availableGame = Optional.of(new QuickGame("1111", "WaitingForPlayers", true, players, "null"));
+		Optional<QuickGame> availableGame = Optional.of(new QuickGame("1111", "WaitingForPlayers", true, "1"));
 		
 		when(gameService.findQuickGame(playerId)).thenReturn(availableGame);
 		
@@ -148,10 +157,21 @@ class GameControllerTest {
 	void leaveGameTest() throws Exception {
 		final String id = "686863";
 		
-		this.mockMvc.perform(MockMvcRequestBuilders.delete("/games/{id}/leave", id)
-					.header("X-Player", "Test-Player"))
-		.andExpect(status().isOk());
+		Optional<LeaveModel> response = Optional.of(new LeaveModel("Test-Player", id));
 		
+		when(gameService.leaveGame(id, "Test-Player")).thenReturn(response);
+		
+		this.mockMvc.perform(MockMvcRequestBuilders.delete("/games/{id}/leave", id)
+					.header("X-Player", "Test-Player")
+					.content("{\n" +
+							"    \"username\": \" Test-Player\",\n" +
+							"    \"gameId\": \" {id}\"\n" +
+							"}"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("username").value("Test-Player"))
+					.andExpect(jsonPath("gameId").value(id));
+		
+		verify(gameService, times(1)).leaveGame(eq(id), eq("Test-Player"));
 	}
   
 }

@@ -114,6 +114,7 @@ public class GameController {
 	
 	@PostMapping("/quick")
 	public ResponseEntity<QuickGame> findQuickGame(@RequestHeader(PLAYER) String player) {
+		
 		return this.gameService.findQuickGame(player)
 				.map(ResponseEntity::ok)
 				.orElseGet(() -> ResponseEntity.notFound().build());
@@ -121,7 +122,7 @@ public class GameController {
 
 	@DeleteMapping("/{id}/leave")
 	public ResponseEntity<LeaveModel> leaveGame(@PathVariable("id") String id,
-						  @RequestHeader(PLAYER) String player) {
+												@RequestHeader(PLAYER) String player) {
 		
 		return this.gameService.leaveGame(id, player)
 				.map(ResponseEntity::ok)
