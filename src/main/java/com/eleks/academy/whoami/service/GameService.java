@@ -9,6 +9,7 @@ import com.eleks.academy.whoami.model.request.NewGameRequest;
 import com.eleks.academy.whoami.model.response.AllFields;
 import com.eleks.academy.whoami.model.response.GameDetails;
 import com.eleks.academy.whoami.model.response.GameLight;
+import com.eleks.academy.whoami.model.response.LeaveModel;
 import com.eleks.academy.whoami.model.response.PlayerSuggestion;
 import com.eleks.academy.whoami.model.response.QuickGame;
 import com.eleks.academy.whoami.model.response.TurnDetails;
@@ -37,7 +38,7 @@ public interface GameService {
 
 	Optional<QuickGame> findQuickGame(String player);
 
-	void leaveGame(String id, String player);
+	Optional<LeaveModel> leaveGame(String id, String player);
 
 	List<AllFields> findAllGamesInfo(String player);
 	

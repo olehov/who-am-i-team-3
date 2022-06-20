@@ -7,6 +7,7 @@ import com.eleks.academy.whoami.model.request.NewGameRequest;
 import com.eleks.academy.whoami.model.response.AllFields;
 import com.eleks.academy.whoami.model.response.GameDetails;
 import com.eleks.academy.whoami.model.response.GameLight;
+import com.eleks.academy.whoami.model.response.LeaveModel;
 import com.eleks.academy.whoami.model.response.PlayerSuggestion;
 import com.eleks.academy.whoami.model.response.QuickGame;
 import com.eleks.academy.whoami.model.response.TurnDetails;
@@ -42,6 +43,7 @@ public class GameController {
 	@ResponseStatus(HttpStatus.CREATED)
 	public GameDetails createGame(@RequestHeader(PLAYER) String player,
 								  @Valid @RequestBody NewGameRequest gameRequest) {
+		
 		return this.gameService.createGame(player, gameRequest);
 	}
 
@@ -73,6 +75,7 @@ public class GameController {
 	@GetMapping("/{id}/turn")
 	public ResponseEntity<TurnDetails> findTurnInfo(@PathVariable("id") String id,
 													@RequestHeader(PLAYER) String player) {
+		
 		return this.gameService.findTurnInfo(id, player)
 				.map(ResponseEntity::ok)
 				.orElseGet(() -> ResponseEntity.notFound().build());
@@ -90,18 +93,21 @@ public class GameController {
 	@PostMapping("/{id}/questions")
 	public void askQuestion(@PathVariable("id") String id,
 							@RequestHeader(PLAYER) String player, @RequestBody Message message) {
+		
 		this.gameService.askQuestion(id, player, message.getMessage());
 	}
 
 	@PostMapping("/{id}/guess")
 	public void submitGuess(@PathVariable("id") String id,
 							@RequestHeader(PLAYER) String player, @RequestBody Message message) {
+		
 		this.gameService.submitGuess(id, player, message.getMessage());
 	}
 
 	@PostMapping("/{id}/answer")
 	public void answerQuestion(@PathVariable("id") String id,
 							   @RequestHeader(PLAYER) String player, @RequestBody Message message) {
+		
 		this.gameService.answerQuestion(id, player, message.getMessage());
 
 	}
@@ -112,10 +118,13 @@ public class GameController {
 				.map(ResponseEntity::ok)
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
-	//TODO: fix that other response when player not present
+
 	@DeleteMapping("/{id}/leave")
-	public void leaveGame(@PathVariable("id") String id,
+	public ResponseEntity<LeaveModel> leaveGame(@PathVariable("id") String id,
 						  @RequestHeader(PLAYER) String player) {
-		this.gameService.leaveGame(id, player);
+		
+		return this.gameService.leaveGame(id, player)
+				.map(ResponseEntity::ok)
+				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 }

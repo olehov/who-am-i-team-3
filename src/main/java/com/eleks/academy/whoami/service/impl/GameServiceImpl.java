@@ -19,6 +19,7 @@ import com.eleks.academy.whoami.model.request.NewGameRequest;
 import com.eleks.academy.whoami.model.response.AllFields;
 import com.eleks.academy.whoami.model.response.GameDetails;
 import com.eleks.academy.whoami.model.response.GameLight;
+import com.eleks.academy.whoami.model.response.LeaveModel;
 import com.eleks.academy.whoami.model.response.PlayerSuggestion;
 import com.eleks.academy.whoami.model.response.QuickGame;
 import com.eleks.academy.whoami.model.response.TurnDetails;
@@ -49,14 +50,11 @@ public class GameServiceImpl implements GameService {
 	@Override
 	public SynchronousPlayer enrollToGame(String id, String player) {
 		
-		if (gameRepository.findPlayerByHeader(player).isPresent()) {
+		if (this.gameRepository.findPlayerByHeader(player).isPresent()) {
 			throw new PlayerAlreadyInGameException("[" + player + "] already in other game.");
-		} else gameRepository.savePlayer(player);
+		} else this.gameRepository.savePlayer(player);
 		
-		final SynchronousGame game = gameRepository.findById(id).get();
-		
-		return game.enrollToGame(player);
-				
+		return this.gameRepository.findById(id).get().enrollToGame(player);
 	}
 
 	@Override
@@ -87,29 +85,28 @@ public class GameServiceImpl implements GameService {
 	@Override
 	public Optional<GameDetails> startGame(String id, String player) {
 		return this.gameRepository.findById(id)
-							.filter(g -> g.isReadyToStart() == true)
 							.map(SynchronousGame::start)
 							.map(GameDetails::of);
 	}
 
 	@Override
 	public void askQuestion(String gameId, String player, String message) {
-		this.gameRepository.findById(gameId).ifPresent(game -> game.askQuestion(player, message));
+		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
 
 	@Override
 	public Optional<TurnDetails> findTurnInfo(String id, String player) {
-		return Optional.empty();
+		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
 
 	@Override
 	public void submitGuess(String id, String player, String guess) {
-
+		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
 
 	@Override
 	public void answerQuestion(String id, String player, String answer) {
-
+		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
 
 	@Override
@@ -129,17 +126,20 @@ public class GameServiceImpl implements GameService {
 	}
 
 	@Override
-	public void leaveGame(String id, String player) {
+	public Optional<LeaveModel> leaveGame(String id, String player) {
 		
 		if (this.gameRepository.findPlayerByHeader(player).isPresent()) {
-			this.gameRepository.findById(id)
-					.ifPresentOrElse(game -> game.deletePlayerFromGame(player), 
-							() -> {
-								throw new GameNotFoundException("Game with id[" + id + "] not found.");
-							}
-					);
-			this.gameRepository.deletePlayerByHeader(player);
-		} else throw new PlayerNotFoundException("[" + player + "] not found in any game.");
+
+			var game = this.gameRepository.findById(id);
+			
+			if (game.isPresent()) {
+				
+				this.gameRepository.deletePlayerByHeader(player);
+				return Optional.of(LeaveModel.of(game.get().deletePlayerFromGame(player).get(), id));
+				
+			} else throw new GameNotFoundException("Game with id[" + id + "] not found.");
+			
+		} else throw new PlayerNotFoundException("[" + player + "] in game with id[" + id + "] not found.");
 
 	}
 
