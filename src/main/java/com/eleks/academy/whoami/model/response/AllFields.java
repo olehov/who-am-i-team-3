@@ -1,7 +1,5 @@
 package com.eleks.academy.whoami.model.response;
 
-import java.util.List;
-
 import com.eleks.academy.whoami.core.SynchronousGame;
 
 import lombok.AllArgsConstructor;
@@ -21,20 +19,14 @@ private String id;
 	
 	private boolean accessibility;
 	
-	private boolean readyToStart;
-	
-	private List<PlayerWithState> players;
-	
-	private String turn;
+	private String playersInGame;
 	
 	public static AllFields of(SynchronousGame game) {
 		return AllFields.builder()
 				.id(game.getId())
 				.status(game.getStatus())
 				.accessibility(game.isAvailable())
-				.readyToStart(game.isReadyToStart())
-				.players(game.getPlayersInGame())
-				.turn(game.getTurn())
+				.playersInGame(game.getPlayersInGame())
 				.build();
 	}
 }
