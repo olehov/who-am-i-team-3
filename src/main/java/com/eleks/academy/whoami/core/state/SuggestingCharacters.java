@@ -53,16 +53,6 @@ public final class SuggestingCharacters extends AbstractGameState {
 		return Optional.ofNullable(this.players.get(player));
 	}
 	
-	@Override
-	public void remove(String player) {
-		this.players.remove(player);
-	}
-
-	@Override
-	public boolean isReadyToStart() {
-		return finished();
-	}
-	
 	// TODO: Consider extracting into {@link GameState}
 	private Boolean finished() {
 		final var enoughCharacters = Optional.of(this.suggestedCharacters)
@@ -75,7 +65,6 @@ public final class SuggestingCharacters extends AbstractGameState {
 				&& enoughCharacters;
 	}
 	
-	@Override
 	public void suggestCharacter(String player, String character) {
 		List<GameCharacter> characters = this.suggestedCharacters.get(player);
 
@@ -160,6 +149,24 @@ public final class SuggestingCharacters extends AbstractGameState {
 					.map(i -> list.get(i + 1))
 					.orElseGet(() -> list.get(0));
 		};
+	}
+
+	@Override
+	public GameState getCurrentState() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isReadyToNextState() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Optional<SynchronousPlayer> remove(String player) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

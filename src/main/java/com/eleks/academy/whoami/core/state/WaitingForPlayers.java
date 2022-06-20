@@ -1,10 +1,14 @@
 package com.eleks.academy.whoami.core.state;
 
 import com.eleks.academy.whoami.core.SynchronousPlayer;
+import com.eleks.academy.whoami.core.exception.PlayerNotFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 public final class WaitingForPlayers extends AbstractGameState {
 
@@ -17,7 +21,10 @@ public final class WaitingForPlayers extends AbstractGameState {
 
 	@Override
 	public GameState next() {
-		return new SuggestingCharacters(this.players);
+		return Optional.of(this)
+				.filter(WaitingForPlayers::isReadyToNextState)
+				.map(then -> new SuggestingCharacters(this.players))
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 	}
 
 	@Override
@@ -30,14 +37,26 @@ public final class WaitingForPlayers extends AbstractGameState {
 		return this.players.size();
 	}
 	
-	@Override
 	public SynchronousPlayer add(SynchronousPlayer player) {
 		players.put(player.getUserName(), player);
 		return player;
 	}
 	
 	@Override
-	public void remove(String player) {
-		this.players.remove(player);
+	public GameState getCurrentState() {
+		return this;
+	}
+
+	@Override
+	public boolean isReadyToNextState() {
+		return players.size() == getMaxPlayers();
+	}
+
+	@Override
+	public Optional<SynchronousPlayer> remove(String player) {
+		
+		if (findPlayer(player).isPresent()) {
+			return Optional.of(this.players.remove(player));
+		} else throw new PlayerNotFoundException("[" + player + "] not found.");
 	}
 }

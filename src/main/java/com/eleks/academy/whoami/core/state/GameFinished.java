@@ -19,4 +19,22 @@ public final class GameFinished extends AbstractGameState {
 	public Optional<SynchronousPlayer> findPlayer(String player) {
 		return Optional.empty();
 	}
+
+	@Override
+	public GameState getCurrentState() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isReadyToNextState() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Optional<SynchronousPlayer> remove(String player) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
