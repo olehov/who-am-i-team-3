@@ -1,10 +1,6 @@
 package com.eleks.academy.whoami.core;
 
-import java.util.List;
 import java.util.Optional;
-
-import com.eleks.academy.whoami.core.impl.Answer;
-import com.eleks.academy.whoami.model.response.PlayerWithState;
 
 public interface SynchronousGame {
 
@@ -14,24 +10,14 @@ public interface SynchronousGame {
 
 	SynchronousPlayer enrollToGame(String player);
 
-	List<PlayerWithState> getPlayersInGame();
+	String getPlayersInGame();
 
 	String getStatus();
 
 	boolean isAvailable();
 
-	String getTurn();
-	
-	void suggestChar(String player);
-
-	void askQuestion(String player, String message);
-
-	void answerQuestion(String player, Answer answer);
-
 	SynchronousGame start();
 
-	void deletePlayerFromGame(String player);
-
-	boolean isReadyToStart();
+	Optional<SynchronousPlayer> deletePlayerFromGame(String player);
 
 }
