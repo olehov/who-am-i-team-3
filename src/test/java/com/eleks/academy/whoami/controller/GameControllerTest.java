@@ -11,7 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -25,13 +24,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.eleks.academy.whoami.configuration.GameControllerAdvice;
-import com.eleks.academy.whoami.core.impl.PersistentPlayer;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
 import com.eleks.academy.whoami.model.response.GameDetails;
 import com.eleks.academy.whoami.model.response.LeaveModel;
 import com.eleks.academy.whoami.model.response.PlayerSuggestion;
-import com.eleks.academy.whoami.model.response.PlayerWithState;
 import com.eleks.academy.whoami.model.response.QuickGame;
 import com.eleks.academy.whoami.service.impl.GameServiceImpl;
 
@@ -119,7 +116,7 @@ class GameControllerTest {
 	void findQuickGameSuccessful() throws Exception {
 		String playerId = "Test-Player";
 
-		Optional<QuickGame> availableGame = Optional.of(new QuickGame("1111", "WaitingForPlayers", true, "1"));
+		Optional<QuickGame> availableGame = Optional.of(new QuickGame("1111", "WaitingForPlayers", true, "1", null));
 		
 		when(gameService.findQuickGame(playerId)).thenReturn(availableGame);
 		
