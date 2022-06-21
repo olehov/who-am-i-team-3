@@ -1,17 +1,26 @@
 package com.eleks.academy.whoami.core.impl;
 
-import com.eleks.academy.whoami.core.Player;
-import com.eleks.academy.whoami.core.SynchronousPlayer;
-
 import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
+import com.eleks.academy.whoami.core.Player;
+import com.eleks.academy.whoami.core.SynchronousPlayer;
+import com.eleks.academy.whoami.model.request.CharacterSuggestion;
+
 public class PersistentPlayer implements Player, SynchronousPlayer {
 
-	private final String name;
-	private final CompletableFuture<String> character = new CompletableFuture<>();
+	private final String username;
+	
+	private String nickname;
+	private String character;
+	private boolean value = Boolean.FALSE;
+	
+	private final CompletableFuture<String> characterFuture = new CompletableFuture<>();
 
 
 	private Queue<String> questionQueue;
@@ -19,25 +28,63 @@ public class PersistentPlayer implements Player, SynchronousPlayer {
 	private volatile CompletableFuture<String> currentAnswer;
 	private volatile CompletableFuture<Boolean> readyForAnswerFuture;
 
-	public PersistentPlayer(String name) {
-		this.name = Objects.requireNonNull(name);
+	public PersistentPlayer(String username) {
+		this.username = Objects.requireNonNull(username);
 	}
-
+	
+//	@Override
+//	public void setCharacter(String character) {
+//		if (!this.characterFuture.complete(character)) {
+//			throw new IllegalStateException("Character has already been suggested!");
+//		}
+//	}
+	
 	@Override
-	public String getName() {
-		return this.name;
+	public String getUserName() {
+		return this.username;
 	}
-
+	
+	@Override
+	public String getNickName() {
+		return this.nickname;
+	}
+	
 	@Override
 	public String getCharacter() {
-		return null;
+		return this.character;
 	}
 
 	@Override
 	public Future<String> suggestCharacter() {
-		return character;
+		return characterFuture;
+	}
+	
+	@Override
+	public void suggest(CharacterSuggestion suggestion) {
+		if (value == false) {
+			value = Boolean.TRUE;
+			setNickName(suggestion.getNickname());
+			setCharacter(suggestion.getCharacter());
+		}
+		else {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Suggestion has already been submitted!");
+		}
+		
+	}
+	
+	@Override
+	public boolean isSuggest() {
+		return value;
+	}
+	
+	private void setNickName(String nickname) {
+		this.nickname = nickname;
 	}
 
+	private void setCharacter(String character) {
+		this.character = character;
+	}
+	
 	@Override
 	public Future<String> getQuestion() {
 		return null;
@@ -66,13 +113,6 @@ public class PersistentPlayer implements Player, SynchronousPlayer {
 	@Override
 	public void close() {
 
-	}
-
-	@Override
-	public void setCharacter(String character) {
-		if (!this.character.complete(character)) {
-			throw new IllegalStateException("Character has already been suggested!");
-		}
 	}
 
 }

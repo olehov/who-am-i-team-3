@@ -3,8 +3,8 @@ package com.eleks.academy.whoami.core;
 import java.util.List;
 import java.util.Optional;
 
-import com.eleks.academy.whoami.core.impl.Answer;
-import com.eleks.academy.whoami.model.response.PlayerWithState;
+import com.eleks.academy.whoami.core.state.GameState;
+import com.eleks.academy.whoami.model.response.BasePlayerModel;
 
 public interface SynchronousGame {
 
@@ -14,20 +14,18 @@ public interface SynchronousGame {
 
 	SynchronousPlayer enrollToGame(String player);
 
-	List<PlayerWithState> getPlayersInGame();
+	String getPlayersInGame();
 
 	String getStatus();
 
 	boolean isAvailable();
 
-	String getTurn();
-
-	void askQuestion(String player, String message);
-
-	void answerQuestion(String player, Answer answer);
-
 	SynchronousGame start();
 
-	void deletePlayerFromGame(String player);
+	Optional<SynchronousPlayer> deletePlayerFromGame(String player);
+
+	List<BasePlayerModel> getPlayersList();
+
+	GameState getState();
 
 }

@@ -1,22 +1,25 @@
 package com.eleks.academy.whoami.repository.impl;
 
-import com.eleks.academy.whoami.core.SynchronousGame;
-import com.eleks.academy.whoami.repository.GameRepository;
-import org.springframework.stereotype.Repository;
-
 import java.util.Map;
-import java.util.Optional;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.stereotype.Repository;
+
+import com.eleks.academy.whoami.core.SynchronousGame;
+import com.eleks.academy.whoami.repository.GameRepository;
+
 @Repository
 public class GameInMemoryRepository implements GameRepository {
 
 	private final Map<String, SynchronousGame> games = new ConcurrentHashMap<>();
-
+	
+	private final Map<String, String> players = new ConcurrentHashMap<>();
+	
 	@Override
 	public Stream<SynchronousGame> findAllAvailable(String player) {
 		Predicate<SynchronousGame> freeToJoin = SynchronousGame::isAvailable;
@@ -41,7 +44,22 @@ public class GameInMemoryRepository implements GameRepository {
 	public Optional<SynchronousGame> findById(String id) {
 		return Optional.ofNullable(this.games.get(id));
 	}
+	
+	@Override
+	public Optional<String> findPlayerByHeader(String player) {
+		return Optional.ofNullable(this.players.get(player));
+	}
 
+	@Override
+	public void savePlayer(String player) {
+		this.players.put(player, player);
+	}
+	
+	@Override
+	public void deletePlayerByHeader(String player) {
+		this.players.remove(player);
+	}
+	
 	@Override
 	public Map<String, SynchronousGame> findAvailableQuickGames() {
 		return filterByValue(games, availableStatus -> availableStatus.isAvailable() == true);
@@ -53,4 +71,5 @@ public class GameInMemoryRepository implements GameRepository {
 	            .filter(entry -> predicate.test(entry.getValue()))
 	            .collect(Collectors.toConcurrentMap(Entry::getKey, Entry::getValue));
 	}
+
 }

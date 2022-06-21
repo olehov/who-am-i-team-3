@@ -5,6 +5,7 @@ import com.eleks.academy.whoami.core.exception.GameException;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 // TODO: Implement makeTurn(...) and next() methods, pass a turn to next player
 public final class ProcessingQuestion extends AbstractGameState {
@@ -33,9 +34,32 @@ public final class ProcessingQuestion extends AbstractGameState {
 		return Optional.ofNullable(this.players.get(player));
 	}
 
-	@Override
 	public String getCurrentTurn() {
 		return this.currentPlayer;
+	}
+
+	@Override
+	public GameState getCurrentState() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isReadyToNextState() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Optional<SynchronousPlayer> remove(String player) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Stream<SynchronousPlayer> getPlayersList() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

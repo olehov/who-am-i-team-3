@@ -4,61 +4,90 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Function;
 
-import com.eleks.academy.whoami.core.Game;
 import com.eleks.academy.whoami.core.SynchronousGame;
 import com.eleks.academy.whoami.core.SynchronousPlayer;
-import com.eleks.academy.whoami.core.state.GameFinished;
+import com.eleks.academy.whoami.core.exception.GameNotFoundException;
 import com.eleks.academy.whoami.core.state.GameState;
 import com.eleks.academy.whoami.core.state.WaitingForPlayers;
-import com.eleks.academy.whoami.model.response.PlayerWithState;
+import com.eleks.academy.whoami.model.response.BasePlayerModel;
 
-public class PersistentGame implements Game, SynchronousGame {
+public class PersistentGame implements SynchronousGame {
 
 	private final String id;
 
-	private int maxPlayers;
+	private final int maxPlayers;
 
-	private List<PlayerWithState> gamePlayers = new CopyOnWriteArrayList<>();
+	private final Queue<GameState> currentState = new LinkedBlockingQueue<>();
 
-	private final Queue<GameState> turns = new LinkedBlockingQueue<>();
-
-	/**
-	 * Creates a new game (game room) and makes a first enrolment turn by a current
+	/*
+	 * Creates a new custom game (game room) and makes a first enrollment turn by a current
 	 * player so that he won't have to enroll to the game he created
 	 *
 	 * @param hostPlayer player to initiate a new game
 	 */
 	public PersistentGame(String hostPlayer, Integer maxPlayers) {
 		this.id = String.format("%d-%d", Instant.now().toEpochMilli(), Double.valueOf(Math.random() * 999).intValue());
-
+		this.maxPlayers = maxPlayers;
 	}
-
+	
+	/*
+	 * Creates a new quick game (game room)
+	 *
+	 * @param maxPlayers to initiate a new quick game
+	 */
 	public PersistentGame(Integer maxPlayers) {
 		this.id = String.format("%d-%d", Instant.now().toEpochMilli(), Double.valueOf(Math.random() * 999).intValue());
 
 		this.maxPlayers = maxPlayers;
-		this.turns.add(new WaitingForPlayers(this.maxPlayers));
+		this.currentState.add(new WaitingForPlayers(this.maxPlayers));
 	}
-
-	@Override
-	public Optional<SynchronousPlayer> findPlayer(String player) {
-		return this.applyIfPresent(this.turns.peek(), gameState -> gameState.findPlayer(player));
-	}
-
+	
+	/*
+	 * Creates a new quick game (game room)
+	 *
+	 * @return {@code String} game unique identifier
+	 */
 	@Override
 	public String getId() {
 		return this.id;
 	}
+	
+	@Override
+	public GameState getState() {
+		return this.applyIfPresent(this.currentState.peek(), GameState::getCurrentState);
+	}
+	
+	@Override
+	public String getStatus() {
+		return this.applyIfPresent(this.currentState.peek(), GameState::getStatus);
+	}
+
+	@Override
+	public String getPlayersInGame() {
+		return Integer.toString(this.currentState.peek().getPlayersInGame());
+	}
+	
+	@Override
+	public List<BasePlayerModel> getPlayersList() {
+		return this.currentState.peek().getPlayersList().map(BasePlayerModel::of).toList();
+	}
+	
+	@Override
+	public Optional<SynchronousPlayer> findPlayer(String player) {
+		return this.applyIfPresent(this.currentState.peek(), gameState -> gameState.findPlayer(player));
+	}
 
 	@Override
 	public SynchronousPlayer enrollToGame(String player) {
-		var newPlayer = turns.peek().add(new PersistentPlayer(player));
-		gamePlayers.add(new PlayerWithState(newPlayer, null, null));
-		return newPlayer;
+		
+		GameState state = currentState.peek();
+
+		if (state instanceof WaitingForPlayers) {
+			return ((WaitingForPlayers)state).add(new PersistentPlayer(player));
+		} else throw new GameNotFoundException("Game [" + this.getId() + "] already at " + this.getStatus() + " state.");
 	}
 
 	/*
@@ -68,75 +97,22 @@ public class PersistentGame implements Game, SynchronousGame {
 	 * 
 	 */
 	@Override
-	public void deletePlayerFromGame(String player) {
-		turns.peek().remove(player);
-		gamePlayers.removeIf(p -> p.getPlayer().getName().contentEquals(player));
-	}
-
-	@Override
-	public String getTurn() {
-		return this.applyIfPresent(this.turns.peek(), GameState::getCurrentTurn);
-	}
-
-	@Override
-	public void askQuestion(String player, String message) {
-
-	}
-
-	@Override
-	public void answerQuestion(String player, Answer answer) {
-		// TODO: Implement method
+	public Optional<SynchronousPlayer> deletePlayerFromGame(String player) {
+		return this.applyIfPresent(currentState.peek(), gameState -> gameState.remove(player));
 	}
 
 	@Override
 	public SynchronousGame start() {
-		return null;
+		//turns.add(turns.poll().next());
+		return this; 
 	}
-
+	
 	@Override
 	public boolean isAvailable() {
-		if (gamePlayers.size() == maxPlayers && turns.peek() instanceof WaitingForPlayers) {
-			turns.add(turns.poll().next());
+		if (currentState.peek().getPlayersInGame() == maxPlayers && currentState.peek() instanceof WaitingForPlayers) {
+			currentState.add(currentState.poll().next());
 		}
-		return gamePlayers.size() < maxPlayers && turns.peek() instanceof WaitingForPlayers;
-	}
-
-	@Override
-	public String getStatus() {
-		return this.applyIfPresent(this.turns.peek(), GameState::getStatus);
-	}
-
-	@Override
-	public List<PlayerWithState> getPlayersInGame() {
-		// TODO: Implement
-		return gamePlayers;
-	}
-
-	@Override
-	public boolean isFinished() {
-		return this.turns.isEmpty();
-	}
-
-	@Override
-	public boolean makeTurn() {
-		return true;
-	}
-
-	@Override
-	public void changeTurn() {
-
-	}
-
-	@Override
-	public void initGame() {
-
-	}
-
-	@Override
-	public void play() {
-		while (!(this.turns.peek() instanceof GameFinished)) {
-			this.makeTurn();
-		}
+		return currentState.peek().getPlayersInGame() < maxPlayers && currentState.peek() instanceof WaitingForPlayers;
 	}
 
 	private <T, R> R applyIfPresent(T source, Function<T, R> mapper) {

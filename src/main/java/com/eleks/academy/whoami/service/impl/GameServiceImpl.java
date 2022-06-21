@@ -10,11 +10,18 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.eleks.academy.whoami.core.SynchronousGame;
 import com.eleks.academy.whoami.core.SynchronousPlayer;
+import com.eleks.academy.whoami.core.exception.GameNotFoundException;
+import com.eleks.academy.whoami.core.exception.PlayerAlreadyInGameException;
+import com.eleks.academy.whoami.core.exception.PlayerNotFoundException;
 import com.eleks.academy.whoami.core.impl.PersistentGame;
+import com.eleks.academy.whoami.core.state.SuggestingCharacters;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
+import com.eleks.academy.whoami.model.response.AllFields;
 import com.eleks.academy.whoami.model.response.GameDetails;
 import com.eleks.academy.whoami.model.response.GameLight;
+import com.eleks.academy.whoami.model.response.LeaveModel;
+import com.eleks.academy.whoami.model.response.PlayerSuggestion;
 import com.eleks.academy.whoami.model.response.QuickGame;
 import com.eleks.academy.whoami.model.response.TurnDetails;
 import com.eleks.academy.whoami.repository.GameRepository;
@@ -30,9 +37,7 @@ public class GameServiceImpl implements GameService {
 
 	@Override
 	public List<GameLight> findAvailableGames(String player) {
-		return this.gameRepository.findAllAvailable(player)
-				.map(GameLight::of)
-				.toList();
+		return this.gameRepository.findAllAvailable(player).map(GameLight::of).toList();
 	}
 
 	@Override
@@ -42,85 +47,116 @@ public class GameServiceImpl implements GameService {
 		return GameDetails.of(game);
 	}
 
+	//TODO: implement validations for create custom game
 	@Override
-	public SynchronousPlayer enrollToGame(String id, String playerId) {
-
-		final SynchronousGame game = gameRepository.findById(id).get();
-		Optional<SynchronousPlayer> player = game.findPlayer(playerId);
+	public SynchronousPlayer enrollToGame(String id, String player) {
 		
-		if (player.isPresent()) {
-			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Already in game.");
-		}
+		if (this.gameRepository.findPlayerByHeader(player).isPresent()) {
+			throw new PlayerAlreadyInGameException("ENROLL-TO-GAME: [" + player + "] already in other game.");
+		} else this.gameRepository.savePlayer(player);
 		
-		return game.enrollToGame(playerId);
-				
+		return this.gameRepository.findById(id).get().enrollToGame(player);
 	}
 
 	@Override
 	public Optional<GameDetails> findByIdAndPlayer(String id, String player) {
-		return this.gameRepository.findById(id)
-				.filter(game -> game.findPlayer(player).isPresent())
+		return this.gameRepository.findById(id).filter(game -> game.findPlayer(player).isPresent())
 				.map(GameDetails::of);
 	}
 
+	/*
+	 *TODO: check gameState 
+	 */
 	@Override
-	public void suggestCharacter(String id, String player, CharacterSuggestion suggestion) {
+	public Optional<PlayerSuggestion> suggestCharacter(String id, String player, CharacterSuggestion suggestion) {
+
 		this.gameRepository.findById(id)
-				.flatMap(game -> game.findPlayer(player))
-				.ifPresent(p -> p.setCharacter(suggestion.getCharacter()));
+				.filter(g -> g.isAvailable() == false && g.getState() instanceof SuggestingCharacters)
+				.map(game -> game.findPlayer(player))
+				.ifPresentOrElse(p -> p.ifPresentOrElse(then -> then.suggest(suggestion), 
+											() -> {
+												throw new PlayerNotFoundException("SUGGESTINGCHARACTERS: [" + player + "] in game with id[" + id + "] not found.");
+											}
+										), 
+						() -> {
+							throw new GameNotFoundException("SUGGESTINGCHARACTERS: Game with id[" + id + "] not found.");
+						}
+				);
+		
+		SynchronousPlayer ingamePlayer = gameRepository.findById(id).flatMap(game -> game.findPlayer(player)).get();
+		return Optional.of(PlayerSuggestion.of(ingamePlayer));
 	}
 
 	@Override
 	public Optional<GameDetails> startGame(String id, String player) {
 		return this.gameRepository.findById(id)
-				.map(SynchronousGame::start)
-				.map(GameDetails::of);
+							.map(SynchronousGame::start)
+							.map(GameDetails::of);
 	}
 
 	@Override
 	public void askQuestion(String gameId, String player, String message) {
-		this.gameRepository.findById(gameId)
-				.ifPresent(game -> game.askQuestion(player, message));
+		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
 
 	@Override
 	public Optional<TurnDetails> findTurnInfo(String id, String player) {
-		return Optional.empty();
+		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
 
 	@Override
 	public void submitGuess(String id, String player, String guess) {
-
+		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
 
 	@Override
 	public void answerQuestion(String id, String player, String answer) {
-
+		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
 
 	@Override
 	public Optional<QuickGame> findQuickGame(String player) {
-		Map<String, SynchronousGame> games = gameRepository.findAvailableQuickGames();
 		
-		if (games.isEmpty()) {
-			final SynchronousGame game = gameRepository.save(new PersistentGame(4));
-			enrollToGame(game.getId(), player);
-			return gameRepository.findById(game.getId()).map(QuickGame::of); 
-		}
-		
-		var FirstGame = games.keySet().stream().findFirst().get();
-		enrollToGame(games.get(FirstGame).getId(), player);
-		return gameRepository.findById(games.get(FirstGame).getId()).map(QuickGame::of);
+		if (!this.gameRepository.findPlayerByHeader(player).isPresent()) {
+			
+			Map<String, SynchronousGame> games = gameRepository.findAvailableQuickGames();
+			
+			if (games.isEmpty()) {
+				
+				final SynchronousGame game = gameRepository.save(new PersistentGame(4));
+				enrollToGame(game.getId(), player);
+				
+				return gameRepository.findById(game.getId()).map(QuickGame::of);
+			}
+			
+			var FirstGame = games.keySet().stream().findFirst().get();
+			enrollToGame(games.get(FirstGame).getId(), player);
+			
+			return gameRepository.findById(games.get(FirstGame).getId()).map(QuickGame::of);
+		} else throw new PlayerAlreadyInGameException("QUICK-GAME: [" + player + "] already in other game.");
 	}
 
 	@Override
-	public void leaveGame(String id, String player) {
-		this.gameRepository.findById(id)
-			.ifPresentOrElse(game -> game.deletePlayerFromGame(player), 
-					() -> {
-						throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-					}
-			);
+	public Optional<LeaveModel> leaveGame(String id, String player) {
+		
+		if (this.gameRepository.findPlayerByHeader(player).isPresent()) {
+
+			var game = this.gameRepository.findById(id);
+			
+			if (game.isPresent()) {
+				
+				this.gameRepository.deletePlayerByHeader(player);
+				return Optional.of(LeaveModel.of(game.get().deletePlayerFromGame(player).get(), id));
+				
+			} else throw new GameNotFoundException("Game with id[" + id + "] not found.");
+			
+		} else throw new PlayerNotFoundException("[" + player + "] in game with id[" + id + "] not found.");
+
 	}
-	
+
+	@Override
+	public List<AllFields> findAllGamesInfo(String player) {
+		return this.gameRepository.findAllAvailable(player).map(AllFields::of).toList();
+	}
+
 }

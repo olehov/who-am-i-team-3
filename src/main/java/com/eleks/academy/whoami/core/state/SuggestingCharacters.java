@@ -1,21 +1,29 @@
 package com.eleks.academy.whoami.core.state;
 
+import static java.util.stream.Collectors.toList;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.core.exception.GameException;
 import com.eleks.academy.whoami.core.impl.GameCharacter;
 
-import java.util.*;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
-
 public final class SuggestingCharacters extends AbstractGameState {
-
-	private final Lock lock = new ReentrantLock();
 
 	private final Map<String, SynchronousPlayer> players;
 	private final Map<String, List<GameCharacter>> suggestedCharacters;
@@ -49,11 +57,6 @@ public final class SuggestingCharacters extends AbstractGameState {
 		return Optional.ofNullable(this.players.get(player));
 	}
 	
-	@Override
-	public void remove(String player) {
-		this.players.remove(player);
-	}
-	
 	// TODO: Consider extracting into {@link GameState}
 	private Boolean finished() {
 		final var enoughCharacters = Optional.of(this.suggestedCharacters)
@@ -65,8 +68,8 @@ public final class SuggestingCharacters extends AbstractGameState {
 		return this.suggestedCharacters.size() > 1
 				&& enoughCharacters;
 	}
-
-	private GameState suggestCharacter(String player, String character) {
+	
+	public void suggestCharacter(String player, String character) {
 		List<GameCharacter> characters = this.suggestedCharacters.get(player);
 
 		if (Objects.isNull(characters)) {
@@ -79,7 +82,6 @@ public final class SuggestingCharacters extends AbstractGameState {
 
 		characters.add(GameCharacter.of(character, player));
 
-		return this;
 	}
 
 	/**
@@ -134,7 +136,6 @@ public final class SuggestingCharacters extends AbstractGameState {
 		return this;
 	}
 
-
 	private Function<List<GameCharacter>, GameCharacter> getRandomCharacter() {
 		return gameCharacters -> {
 			int randomPos = (int) (Math.random() * gameCharacters.size());
@@ -152,6 +153,28 @@ public final class SuggestingCharacters extends AbstractGameState {
 					.map(i -> list.get(i + 1))
 					.orElseGet(() -> list.get(0));
 		};
+	}
+
+	@Override
+	public GameState getCurrentState() {
+		return this;
+	}
+
+	@Override
+	public boolean isReadyToNextState() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Optional<SynchronousPlayer> remove(String player) {
+		// TODO Auto-generated method stub
+		throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+	}
+
+	@Override
+	public Stream<SynchronousPlayer> getPlayersList() {
+		return this.players.values().stream();
 	}
 
 }
