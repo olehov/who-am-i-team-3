@@ -14,6 +14,7 @@ import com.eleks.academy.whoami.core.exception.GameNotFoundException;
 import com.eleks.academy.whoami.core.exception.PlayerAlreadyInGameException;
 import com.eleks.academy.whoami.core.exception.PlayerNotFoundException;
 import com.eleks.academy.whoami.core.impl.PersistentGame;
+import com.eleks.academy.whoami.core.state.SuggestingCharacters;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
 import com.eleks.academy.whoami.model.response.AllFields;
@@ -51,7 +52,7 @@ public class GameServiceImpl implements GameService {
 	public SynchronousPlayer enrollToGame(String id, String player) {
 		
 		if (this.gameRepository.findPlayerByHeader(player).isPresent()) {
-			throw new PlayerAlreadyInGameException("[" + player + "] already in other game.");
+			throw new PlayerAlreadyInGameException("ENROLL-TO-GAME: [" + player + "] already in other game.");
 		} else this.gameRepository.savePlayer(player);
 		
 		return this.gameRepository.findById(id).get().enrollToGame(player);
@@ -70,11 +71,15 @@ public class GameServiceImpl implements GameService {
 	public Optional<PlayerSuggestion> suggestCharacter(String id, String player, CharacterSuggestion suggestion) {
 
 		this.gameRepository.findById(id)
-				.filter(g -> g.isAvailable() == false)
-				.map(game -> game.findPlayer(player).get())
-				.ifPresentOrElse(p -> p.suggest(suggestion), 
+				.filter(g -> g.isAvailable() == false && g.getState() instanceof SuggestingCharacters)
+				.map(game -> game.findPlayer(player))
+				.ifPresentOrElse(p -> p.ifPresentOrElse(then -> then.suggest(suggestion), 
+											() -> {
+												throw new PlayerNotFoundException("SUGGESTINGCHARACTERS: [" + player + "] in game with id[" + id + "] not found.");
+											}
+										), 
 						() -> {
-							throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+							throw new GameNotFoundException("SUGGESTINGCHARACTERS: Game with id[" + id + "] not found.");
 						}
 				);
 		
@@ -112,17 +117,23 @@ public class GameServiceImpl implements GameService {
 	@Override
 	public Optional<QuickGame> findQuickGame(String player) {
 		
-		Map<String, SynchronousGame> games = gameRepository.findAvailableQuickGames();
-
-		if (games.isEmpty()) {
-			final SynchronousGame game = gameRepository.save(new PersistentGame(4));
-			enrollToGame(game.getId(), player);
-			return gameRepository.findById(game.getId()).map(QuickGame::of);
-		}
-
-		var FirstGame = games.keySet().stream().findFirst().get();
-		enrollToGame(games.get(FirstGame).getId(), player);
-		return gameRepository.findById(games.get(FirstGame).getId()).map(QuickGame::of);
+		if (!this.gameRepository.findPlayerByHeader(player).isPresent()) {
+			
+			Map<String, SynchronousGame> games = gameRepository.findAvailableQuickGames();
+			
+			if (games.isEmpty()) {
+				
+				final SynchronousGame game = gameRepository.save(new PersistentGame(4));
+				enrollToGame(game.getId(), player);
+				
+				return gameRepository.findById(game.getId()).map(QuickGame::of);
+			}
+			
+			var FirstGame = games.keySet().stream().findFirst().get();
+			enrollToGame(games.get(FirstGame).getId(), player);
+			
+			return gameRepository.findById(games.get(FirstGame).getId()).map(QuickGame::of);
+		} else throw new PlayerAlreadyInGameException("QUICK-GAME: [" + player + "] already in other game.");
 	}
 
 	@Override

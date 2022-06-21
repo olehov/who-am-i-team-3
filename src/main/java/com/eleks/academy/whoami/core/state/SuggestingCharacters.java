@@ -157,8 +157,7 @@ public final class SuggestingCharacters extends AbstractGameState {
 
 	@Override
 	public GameState getCurrentState() {
-		// TODO Auto-generated method stub
-		return null;
+		return this;
 	}
 
 	@Override

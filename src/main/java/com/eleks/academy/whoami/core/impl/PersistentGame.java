@@ -56,6 +56,11 @@ public class PersistentGame implements SynchronousGame {
 	}
 	
 	@Override
+	public GameState getState() {
+		return this.applyIfPresent(this.currentState.peek(), GameState::getCurrentState);
+	}
+	
+	@Override
 	public String getStatus() {
 		return this.applyIfPresent(this.currentState.peek(), GameState::getStatus);
 	}

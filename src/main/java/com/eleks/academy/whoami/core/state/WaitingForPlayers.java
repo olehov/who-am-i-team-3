@@ -25,7 +25,7 @@ public final class WaitingForPlayers extends AbstractGameState {
 		return Optional.of(this)
 				.filter(WaitingForPlayers::isReadyToNextState)
 				.map(then -> new SuggestingCharacters(this.players))
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST)); // <--- fix exception
 	}
 
 	@Override
