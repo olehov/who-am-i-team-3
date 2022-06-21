@@ -1,8 +1,9 @@
 package com.eleks.academy.whoami.core.state;
 
-import com.eleks.academy.whoami.core.SynchronousPlayer;
-
 import java.util.Optional;
+import java.util.stream.Stream;
+
+import com.eleks.academy.whoami.core.SynchronousPlayer;
 
 public sealed interface GameState permits AbstractGameState {
 
@@ -36,6 +37,14 @@ public sealed interface GameState permits AbstractGameState {
 	 * @throw ResponseStatusException(400)
 	 */
 	GameState next();
+	
+	/*
+	 * Return stream of players for better representation
+	 * in response models 
+	 *
+	 * @return values of players map
+	 */
+	Stream<SynchronousPlayer> getPlayersList();
 	
 	/**
 	 * Used for presentation purposes only

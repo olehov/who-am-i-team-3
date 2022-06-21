@@ -6,6 +6,7 @@ import com.eleks.academy.whoami.core.exception.PlayerNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -28,18 +29,13 @@ public final class WaitingForPlayers extends AbstractGameState {
 	}
 
 	@Override
-	public Optional<SynchronousPlayer> findPlayer(String player) {
-		return Optional.ofNullable(this.players.get(player));
-	}
-
-	@Override
 	public int getPlayersInGame() {
 		return this.players.size();
 	}
 	
-	public SynchronousPlayer add(SynchronousPlayer player) {
-		players.put(player.getUserName(), player);
-		return player;
+	@Override
+	public Stream<SynchronousPlayer> getPlayersList() {
+		return this.players.values().stream();
 	}
 	
 	@Override
@@ -48,8 +44,8 @@ public final class WaitingForPlayers extends AbstractGameState {
 	}
 
 	@Override
-	public boolean isReadyToNextState() {
-		return players.size() == getMaxPlayers();
+	public Optional<SynchronousPlayer> findPlayer(String player) {
+		return Optional.ofNullable(this.players.get(player));
 	}
 
 	@Override
@@ -59,4 +55,16 @@ public final class WaitingForPlayers extends AbstractGameState {
 			return Optional.of(this.players.remove(player));
 		} else throw new PlayerNotFoundException("[" + player + "] not found.");
 	}
+	
+	public SynchronousPlayer add(SynchronousPlayer player) {
+		players.put(player.getUserName(), player);
+		return player;
+	}
+
+	@Override
+	public boolean isReadyToNextState() {
+		return players.size() == getMaxPlayers();
+	}
+
+
 }

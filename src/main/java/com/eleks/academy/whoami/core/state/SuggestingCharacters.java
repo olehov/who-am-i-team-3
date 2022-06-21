@@ -14,6 +14,10 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.core.exception.GameException;
@@ -166,7 +170,12 @@ public final class SuggestingCharacters extends AbstractGameState {
 	@Override
 	public Optional<SynchronousPlayer> remove(String player) {
 		// TODO Auto-generated method stub
-		return null;
+		throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+	}
+
+	@Override
+	public Stream<SynchronousPlayer> getPlayersList() {
+		return this.players.values().stream();
 	}
 
 }
