@@ -42,7 +42,7 @@ public final class SuggestingCharacters extends AbstractGameState {
 
 	/**
 	 * Randomly assigns characters to players and returns a next stage
-	 * or throws {@link GameException} in case {@link this#finished()} returns {@code false}
+	 * or throws {@link GameException} in case returns {@code false}
 	 *
 	 * @return next {@link ProcessingQuestion} stage
 	 */
