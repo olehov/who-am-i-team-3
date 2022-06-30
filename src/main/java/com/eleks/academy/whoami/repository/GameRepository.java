@@ -22,4 +22,6 @@ public interface GameRepository {
 
 	void deletePlayerByHeader(String player);
 
+	Stream<SynchronousGame> findAllGames(String player);
+
 }

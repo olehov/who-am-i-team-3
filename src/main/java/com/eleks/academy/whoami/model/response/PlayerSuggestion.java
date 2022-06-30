@@ -23,7 +23,7 @@ public class PlayerSuggestion {
 		return PlayerSuggestion.builder()
 				.username(player.getUserName())
 				.nickname(player.getNickName())
-				.suggestion(player.getCharacter())
+				.suggestion(player.getCharacterSuggestion())
 				.build();
 	}
 }

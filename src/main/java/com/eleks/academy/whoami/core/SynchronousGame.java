@@ -1,6 +1,7 @@
 package com.eleks.academy.whoami.core;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import com.eleks.academy.whoami.core.state.GameState;
@@ -27,5 +28,7 @@ public interface SynchronousGame {
 	List<BasePlayerModel> getPlayersList();
 
 	GameState getState();
+
+	Map<String, String> getMap();
 
 }

@@ -66,9 +66,10 @@ class GameControllerTest {
 						MockMvcRequestBuilders.post("/games")
 								.header("X-Player", "player")
 								.contentType(MediaType.APPLICATION_JSON)
-								.content("{\n" +
-										"    \"maxPlayers\": 2\n" +
-										"}"))
+								.content("""
+										{
+										    "maxPlayers": 2
+										}"""))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("id").value("12613126"))
 				.andExpect(jsonPath("status").value("WaitingForPlayers"));
@@ -80,9 +81,10 @@ class GameControllerTest {
 						MockMvcRequestBuilders.post("/games")
 								.header("X-Player", "player")
 								.contentType(MediaType.APPLICATION_JSON)
-								.content("{\n" +
-										"    \"maxPlayers\": null\n" +
-										"}"))
+								.content("""
+										{
+										    "maxPlayers": null
+										}"""))
 				.andExpect(status().isBadRequest())
 				.andExpect(content().string("{\"message\":\"Validation failed!\"," +
 						"\"details\":[\"maxPlayers must not be null\"]}"));
@@ -100,10 +102,11 @@ class GameControllerTest {
 						MockMvcRequestBuilders.post("/games/1234/characters")
 								.header("X-Player", header)
 								.contentType(MediaType.APPLICATION_JSON)
-								.content("{\n" +
-										"    \"nickname\": \" Usop\",\n" +
-										"    \"character\": \" char\"\n" +
-										"}"))
+								.content("""
+										{
+										    "nickname": " Usop",
+										    "character": " char"
+										}"""))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("username").value(header))
 				.andExpect(jsonPath("nickname").value("Usop"))
@@ -160,10 +163,11 @@ class GameControllerTest {
 		
 		this.mockMvc.perform(MockMvcRequestBuilders.delete("/games/{id}/leave", id)
 					.header("X-Player", "Test-Player")
-					.content("{\n" +
-							"    \"username\": \" Test-Player\",\n" +
-							"    \"gameId\": \" {id}\"\n" +
-							"}"))
+					.content("""
+							{
+							    "username": " Test-Player",
+							    "gameId": " {id}"
+							}"""))
 					.andExpect(status().isOk())
 					.andExpect(jsonPath("username").value("Test-Player"))
 					.andExpect(jsonPath("gameId").value(id));
