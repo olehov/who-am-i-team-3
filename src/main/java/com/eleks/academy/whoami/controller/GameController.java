@@ -10,6 +10,7 @@ import com.eleks.academy.whoami.model.response.GameLight;
 import com.eleks.academy.whoami.model.response.LeaveModel;
 import com.eleks.academy.whoami.model.response.PlayerSuggestion;
 import com.eleks.academy.whoami.model.response.QuickGame;
+import com.eleks.academy.whoami.model.response.StartGameModel;
 import com.eleks.academy.whoami.model.response.TurnDetails;
 import com.eleks.academy.whoami.service.GameService;
 import lombok.RequiredArgsConstructor;
@@ -81,9 +82,8 @@ public class GameController {
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 	
-	
 	@PostMapping("/{id}")
-	public ResponseEntity<GameDetails> startGame(@PathVariable("id") String id,
+	public ResponseEntity<StartGameModel> startGame(@PathVariable("id") String id,
 												 @RequestHeader(PLAYER) String player) {
 		return this.gameService.startGame(id, player)
 				.map(ResponseEntity::ok)

@@ -23,6 +23,7 @@ import com.eleks.academy.whoami.model.response.GameLight;
 import com.eleks.academy.whoami.model.response.LeaveModel;
 import com.eleks.academy.whoami.model.response.PlayerSuggestion;
 import com.eleks.academy.whoami.model.response.QuickGame;
+import com.eleks.academy.whoami.model.response.StartGameModel;
 import com.eleks.academy.whoami.model.response.TurnDetails;
 import com.eleks.academy.whoami.repository.GameRepository;
 import com.eleks.academy.whoami.service.GameService;
@@ -88,10 +89,11 @@ public class GameServiceImpl implements GameService {
 	}
 
 	@Override
-	public Optional<GameDetails> startGame(String id, String player) {
+	public Optional<StartGameModel> startGame(String id, String player) {
 		return this.gameRepository.findById(id)
+							.filter(g -> g.getState().isReadyToNextState() && g.getState() instanceof SuggestingCharacters)
 							.map(SynchronousGame::start)
-							.map(GameDetails::of);
+							.map(StartGameModel::of);
 	}
 
 	@Override
@@ -156,7 +158,7 @@ public class GameServiceImpl implements GameService {
 
 	@Override
 	public List<AllFields> findAllGamesInfo(String player) {
-		return this.gameRepository.findAllAvailable(player).map(AllFields::of).toList();
+		return this.gameRepository.findAllGames(player).map(AllFields::of).toList();
 	}
 
 }

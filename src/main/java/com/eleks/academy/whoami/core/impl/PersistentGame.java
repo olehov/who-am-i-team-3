@@ -2,6 +2,7 @@ package com.eleks.academy.whoami.core.impl;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -11,6 +12,7 @@ import com.eleks.academy.whoami.core.SynchronousGame;
 import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.core.exception.GameNotFoundException;
 import com.eleks.academy.whoami.core.state.GameState;
+import com.eleks.academy.whoami.core.state.ProcessingQuestion;
 import com.eleks.academy.whoami.core.state.WaitingForPlayers;
 import com.eleks.academy.whoami.model.response.BasePlayerModel;
 
@@ -21,7 +23,8 @@ public class PersistentGame implements SynchronousGame {
 	private final int maxPlayers;
 
 	private final Queue<GameState> currentState = new LinkedBlockingQueue<>();
-
+	
+	private int token = 0;
 	/*
 	 * Creates a new custom game (game room) and makes a first enrollment turn by a current
 	 * player so that he won't have to enroll to the game he created
@@ -76,6 +79,12 @@ public class PersistentGame implements SynchronousGame {
 	}
 	
 	@Override
+	public Map<String, String> getMap() {
+		return ((ProcessingQuestion)currentState.peek()).getMap();
+	}
+	
+	
+	@Override
 	public Optional<SynchronousPlayer> findPlayer(String player) {
 		return this.applyIfPresent(this.currentState.peek(), gameState -> gameState.findPlayer(player));
 	}
@@ -86,7 +95,7 @@ public class PersistentGame implements SynchronousGame {
 		GameState state = currentState.peek();
 
 		if (state instanceof WaitingForPlayers) {
-			return ((WaitingForPlayers)state).add(new PersistentPlayer(player));
+			return ((WaitingForPlayers)state).add(new PersistentPlayer(player, generateNickname()));
 		} else throw new GameNotFoundException("Game [" + this.getId() + "] already at " + this.getStatus() + " state.");
 	}
 
@@ -103,7 +112,8 @@ public class PersistentGame implements SynchronousGame {
 
 	@Override
 	public SynchronousGame start() {
-		//turns.add(turns.poll().next());
+//		this.currentState.peek().next();
+		this.currentState.add(currentState.poll().next());
 		return this; 
 	}
 	
@@ -122,5 +132,9 @@ public class PersistentGame implements SynchronousGame {
 	private <T, R> R applyIfPresent(T source, Function<T, R> mapper, R fallback) {
 		return Optional.ofNullable(source).map(mapper).orElse(fallback);
 	}
-
+	
+	private String generateNickname() {
+//		int token = ((int) (Math.random() * (65535 - 49152)) + 49152);
+		return "Player " + Integer.toString(++token);
+	}
 }

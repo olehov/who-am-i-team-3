@@ -13,11 +13,26 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class BasePlayerModel {
 
-	private SynchronousPlayer player;
+	private String username;
+	
+	private String nickname;
+	
+	private String gameCharacter;
+	
+	private String characterSuggestion;
+	
+	private boolean isSuggested;
+	
+	private boolean isCharacterAssigned;
 	
 	public static BasePlayerModel of(SynchronousPlayer player) {
 		return BasePlayerModel.builder()
-				.player(player)
+				.username(player.getUserName())
+				.nickname(player.getNickName())
+				.gameCharacter(player.getGameCharacter())
+				.characterSuggestion(player.getCharacterSuggestion())
+				.isSuggested(player.isSuggest())
+				.isCharacterAssigned(player.isCharacterAssigned())
 				.build();
 	}
 }

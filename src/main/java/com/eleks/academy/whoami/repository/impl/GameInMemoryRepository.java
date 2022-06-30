@@ -24,15 +24,19 @@ public class GameInMemoryRepository implements GameRepository {
 	public Stream<SynchronousGame> findAllAvailable(String player) {
 		Predicate<SynchronousGame> freeToJoin = SynchronousGame::isAvailable;
 
-		Predicate<SynchronousGame> playersGame = game ->
-				game.findPlayer(player).isPresent();
+//		Predicate<SynchronousGame> playersGame = game ->
+//				game.findPlayer(player).isPresent();
 
 		return this.games.values()
-				.stream();
-//			Prevent 500 response & NullPpointExc
-//				.filter(freeToJoin.or(playersGame));
-	}
+				.stream()
+				.filter(freeToJoin);
 
+	}
+	
+	public Stream<SynchronousGame> findAllGames(String player) {
+		return this.games.values().stream();
+	}
+	
 	@Override
 	public SynchronousGame save(SynchronousGame game) {
 		this.games.put(game.getId(), game);

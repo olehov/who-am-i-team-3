@@ -12,6 +12,7 @@ import com.eleks.academy.whoami.model.response.GameLight;
 import com.eleks.academy.whoami.model.response.LeaveModel;
 import com.eleks.academy.whoami.model.response.PlayerSuggestion;
 import com.eleks.academy.whoami.model.response.QuickGame;
+import com.eleks.academy.whoami.model.response.StartGameModel;
 import com.eleks.academy.whoami.model.response.TurnDetails;
 
 public interface GameService {
@@ -26,7 +27,7 @@ public interface GameService {
 
 	Optional<PlayerSuggestion> suggestCharacter(String id, String player, CharacterSuggestion suggestion);
 
-	Optional<GameDetails> startGame(String id, String player);
+	Optional<StartGameModel> startGame(String id, String player);
 
 	void askQuestion(String gameId, String player, String message);
 

@@ -6,14 +6,18 @@ public interface SynchronousPlayer {
 
 	String getUserName();
 
-	String getCharacter();
+	String getCharacterSuggestion();
 	
 	void suggest(CharacterSuggestion suggestion);
-
-//	void setCharacter(String character);
 
 	boolean isSuggest();
 
 	String getNickName();
+
+	String getGameCharacter();
+
+	void setGameCharacter(String gameCharacter);
+
+	boolean isCharacterAssigned();
 
 }
