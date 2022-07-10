@@ -42,5 +42,9 @@ public interface GameService {
 	Optional<LeaveModel> leaveGame(String id, String player);
 
 	List<AllFields> findAllGamesInfo(String player);
+
+	void changePlayersOnline(String player, int playersOnline);
+
+	Optional<Integer> playersOnlineInfo(String player);
 	
 }

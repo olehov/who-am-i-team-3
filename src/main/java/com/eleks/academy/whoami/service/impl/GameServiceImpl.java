@@ -120,7 +120,10 @@ public class GameServiceImpl implements GameService {
 	public Optional<QuickGame> findQuickGame(String player) {
 		
 		if (!this.gameRepository.findPlayerByHeader(player).isPresent()) {
-			
+
+			changePlayersOnline(player,this.gameRepository.playersOnlineInfo());
+
+
 			Map<String, SynchronousGame> games = gameRepository.findAvailableQuickGames();
 			
 			if (games.isEmpty()) {
@@ -148,6 +151,7 @@ public class GameServiceImpl implements GameService {
 			if (game.isPresent()) {
 				
 				this.gameRepository.deletePlayerByHeader(player);
+				changePlayersOnline(player,this.gameRepository.playersOnlineInfo() - 1);
 				return Optional.of(LeaveModel.of(game.get().deletePlayerFromGame(player).get(), id));
 				
 			} else throw new GameNotFoundException("Game with id[" + id + "] not found.");
@@ -161,4 +165,17 @@ public class GameServiceImpl implements GameService {
 		return this.gameRepository.findAllGames(player).map(AllFields::of).toList();
 	}
 
+	@Override
+	public void changePlayersOnline(String player, int playersOnline) {
+		if(playersOnline == 0){
+			this.gameRepository.changePlayersOnline(1);
+		}else {
+			this.gameRepository.changePlayersOnline(playersOnline + 1);
+		}
+	}
+
+	@Override
+	public Optional<Integer> playersOnlineInfo(String player) {
+		return Optional.of(this.gameRepository.playersOnlineInfo());
+	}
 }

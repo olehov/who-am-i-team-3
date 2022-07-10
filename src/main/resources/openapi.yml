@@ -267,9 +267,31 @@ paths:
               $ref: '#/components/schemas/Message'      
       responses:
         '200':
-          description: No response data in case succesful request                                                                           
-    
-#  ----- Components  ----------------------------------------           
+          description: No response data in case succesful request
+  /games/quick:
+    post:
+      tags:
+        -game
+      description: Creates game
+      operationId: findQuickGame
+      parameters:
+        -in: header
+        name: X-Player
+        required: true
+        schema:
+          type: string
+        responses:
+          '200':
+            description: Model for quick game creation
+  /games/{id}/leave:
+    delete:
+      tags:
+        -leave
+      description: Leave game
+      operationId: leaveGame
+      parameters:
+        -
+        #  ----- Components  ----------------------------------------
 components:                 
   schemas:
     GameLight:

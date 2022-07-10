@@ -40,7 +40,7 @@ public class GameController {
 		return this.gameService.findAllGamesInfo(player);
 	}
 	
-	@PostMapping
+	@PostMapping("/create")
 	@ResponseStatus(HttpStatus.CREATED)
 	public GameDetails createGame(@RequestHeader(PLAYER) String player,
 								  @Valid @RequestBody NewGameRequest gameRequest) {
@@ -125,6 +125,13 @@ public class GameController {
 												@RequestHeader(PLAYER) String player) {
 		
 		return this.gameService.leaveGame(id, player)
+				.map(ResponseEntity::ok)
+				.orElseGet(() -> ResponseEntity.notFound().build());
+	}
+
+	@GetMapping("all-players-count")
+	public ResponseEntity<Integer> playersOnlineInfo(@RequestHeader(PLAYER) String player) {
+		return this.gameService.playersOnlineInfo(player)
 				.map(ResponseEntity::ok)
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}

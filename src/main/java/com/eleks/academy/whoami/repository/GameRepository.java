@@ -24,4 +24,8 @@ public interface GameRepository {
 
 	Stream<SynchronousGame> findAllGames(String player);
 
+	void changePlayersOnline(int playersOnline);
+
+	int playersOnlineInfo();
+
 }
