@@ -2,7 +2,7 @@ package com.eleks.academy.whoami;
 
 import com.eleks.academy.whoami.api.GameApi;
 import com.eleks.academy.whoami.handler.ApiClient;
-import com.eleks.academy.whoami.api.DefaultApi
+import com.eleks.academy.whoami.api.DefaultApi;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
