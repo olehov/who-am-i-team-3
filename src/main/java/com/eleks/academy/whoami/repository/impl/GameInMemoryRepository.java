@@ -18,11 +18,11 @@ import com.eleks.academy.whoami.repository.GameRepository;
 public class GameInMemoryRepository implements GameRepository {
 
 	private final Map<String, SynchronousGame> games = new ConcurrentHashMap<>();
-	
+
 	private final Map<String, String> players = new ConcurrentHashMap<>();
 
-	private final HomePageInfo homeinfo = new HomePageInfo();
-	
+	private final HomePageInfo homeInfo = new HomePageInfo();
+
 	@Override
 	public Stream<SynchronousGame> findAllAvailable(String player) {
 		Predicate<SynchronousGame> freeToJoin = SynchronousGame::isAvailable;
@@ -35,11 +35,11 @@ public class GameInMemoryRepository implements GameRepository {
 				.filter(freeToJoin);
 
 	}
-	
+
 	public Stream<SynchronousGame> findAllGames(String player) {
 		return this.games.values().stream();
 	}
-	
+
 	@Override
 	public SynchronousGame save(SynchronousGame game) {
 		this.games.put(game.getId(), game);
@@ -51,7 +51,7 @@ public class GameInMemoryRepository implements GameRepository {
 	public Optional<SynchronousGame> findById(String id) {
 		return Optional.ofNullable(this.games.get(id));
 	}
-	
+
 	@Override
 	public Optional<String> findPlayerByHeader(String player) {
 		return Optional.ofNullable(this.players.get(player));
@@ -61,31 +61,31 @@ public class GameInMemoryRepository implements GameRepository {
 	public void savePlayer(String player) {
 		this.players.put(player, player);
 	}
-	
+
 	@Override
 	public void deletePlayerByHeader(String player) {
 		this.players.remove(player);
 	}
-	
+
 	@Override
 	public Map<String, SynchronousGame> findAvailableQuickGames() {
-		return filterByValue(games, availableStatus -> availableStatus.isAvailable() == true);
+		return filterByValue(games, SynchronousGame::isAvailable);
 	}
-	
+
 	private static <K, V> Map<K, V> filterByValue(Map<K, V> map, Predicate<V> predicate) {
-	    return map.entrySet()
-	            .stream()
-	            .filter(entry -> predicate.test(entry.getValue()))
-	            .collect(Collectors.toConcurrentMap(Entry::getKey, Entry::getValue));
+		return map.entrySet()
+				.stream()
+				.filter(entry -> predicate.test(entry.getValue()))
+				.collect(Collectors.toConcurrentMap(Entry::getKey, Entry::getValue));
 	}
 
 	@Override
 	public void changePlayersOnline(int playersOnline) {
-		this.homeinfo.setPlayersOnline(playersOnline);
+		this.homeInfo.setPlayersOnline(playersOnline);
 	}
 
 	@Override
 	public int playersOnlineInfo() {
-		return this.homeinfo.getPlayersOnline();
+		return this.homeInfo.getPlayersOnline();
 	}
 }

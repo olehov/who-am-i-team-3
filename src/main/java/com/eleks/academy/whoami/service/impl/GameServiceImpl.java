@@ -51,11 +51,11 @@ public class GameServiceImpl implements GameService {
 	//TODO: implement validations for create custom game
 	@Override
 	public SynchronousPlayer enrollToGame(String id, String player) {
-		
+
 		if (this.gameRepository.findPlayerByHeader(player).isPresent()) {
 			throw new PlayerAlreadyInGameException("ENROLL-TO-GAME: [" + player + "] already in other game.");
 		} else this.gameRepository.savePlayer(player);
-		
+
 		return this.gameRepository.findById(id).get().enrollToGame(player);
 	}
 
@@ -66,24 +66,24 @@ public class GameServiceImpl implements GameService {
 	}
 
 	/*
-	 *TODO: check gameState 
+	 *TODO: check gameState
 	 */
 	@Override
 	public Optional<PlayerSuggestion> suggestCharacter(String id, String player, CharacterSuggestion suggestion) {
 
 		this.gameRepository.findById(id)
-				.filter(g -> g.isAvailable() == false && g.getState() instanceof SuggestingCharacters)
+				.filter(g -> !g.isAvailable() && g.getState() instanceof SuggestingCharacters)
 				.map(game -> game.findPlayer(player))
-				.ifPresentOrElse(p -> p.ifPresentOrElse(then -> then.suggest(suggestion), 
-											() -> {
-												throw new PlayerNotFoundException("SUGGESTINGCHARACTERS: [" + player + "] in game with id[" + id + "] not found.");
-											}
-										), 
+				.ifPresentOrElse(p -> p.ifPresentOrElse(then -> then.suggest(suggestion),
+								() -> {
+									throw new PlayerNotFoundException("SUGGESTINGCHARACTERS: [" + player + "] in game with id[" + id + "] not found.");
+								}
+						),
 						() -> {
 							throw new GameNotFoundException("SUGGESTINGCHARACTERS: Game with id[" + id + "] not found.");
 						}
 				);
-		
+
 		SynchronousPlayer ingamePlayer = gameRepository.findById(id).flatMap(game -> game.findPlayer(player)).get();
 		return Optional.of(PlayerSuggestion.of(ingamePlayer));
 	}
@@ -91,9 +91,9 @@ public class GameServiceImpl implements GameService {
 	@Override
 	public Optional<StartGameModel> startGame(String id, String player) {
 		return this.gameRepository.findById(id)
-							.filter(g -> g.getState().isReadyToNextState() && g.getState() instanceof SuggestingCharacters)
-							.map(SynchronousGame::start)
-							.map(StartGameModel::of);
+				.filter(g -> g.getState().isReadyToNextState() && g.getState() instanceof SuggestingCharacters)
+				.map(SynchronousGame::start)
+				.map(StartGameModel::of);
 	}
 
 	@Override
