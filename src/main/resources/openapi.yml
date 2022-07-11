@@ -304,21 +304,6 @@ paths:
       responses:
         '200':
           description: Model for delete player with game
-  /games/all-players-count:
-    get:
-      tags:
-        - playersOnline
-      description: Players online
-      operationId: playersOnlineInfo
-      parameters:
-        - in: header
-          name: X-Player
-          required: true
-          schema:
-            - type: integer
-      responses:
-        '200':
-          description: Model for take all online players who play or wait a game
 
         #  ----- Components  ----------------------------------------
 components:                 
