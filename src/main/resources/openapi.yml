@@ -283,27 +283,6 @@ paths:
       responses:
         '200':
           description: Model for quick game creation
-  /games/{id}/leave:
-    delete:
-      tags:
-        - leave
-      description: Leave game
-      operationId: leaveGame
-      parameters:
-        - in: header
-          name: X-Player
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: id
-          description: Game id
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Model for delete player with game
 
         #  ----- Components  ----------------------------------------
 components:                 
