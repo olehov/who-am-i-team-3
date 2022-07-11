@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.eleks.academy.whoami.core.state.GameState;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -181,7 +180,7 @@ public class GameServiceImpl implements GameService {
 	}
 
 	@Override
-	public Optional<Integer> playersOnlineInfo(String player) {
-		return Optional.of(this.gameRepository.playersOnlineInfo());
+	public Integer playersOnlineInfo(String player) {
+		return this.gameRepository.playersOnlineInfo();
 	}
 }

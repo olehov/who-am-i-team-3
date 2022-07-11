@@ -130,9 +130,7 @@ public class GameController {
 	}
 
 	@GetMapping("all-players-count")
-	public ResponseEntity<Integer> playersOnlineInfo(@RequestHeader(PLAYER) String player) {
-		return this.gameService.playersOnlineInfo(player)
-				.map(ResponseEntity::ok)
-				.orElseGet(() -> ResponseEntity.notFound().build());
+	public Integer playersOnlineInfo(@RequestHeader(PLAYER) String player) {
+		return this.gameService.playersOnlineInfo(player);
 	}
 }
