@@ -271,26 +271,55 @@ paths:
   /games/quick:
     post:
       tags:
-        -game
+        - game
       description: Creates game
       operationId: findQuickGame
       parameters:
-        -in: header
-        name: X-Player
-        required: true
-        schema:
-          type: string
-        responses:
-          '200':
-            description: Model for quick game creation
+        - in: header
+          name: X-Player
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Model for quick game creation
   /games/{id}/leave:
     delete:
       tags:
-        -leave
+        - leave
       description: Leave game
       operationId: leaveGame
       parameters:
-        -
+        - in: header
+          name: X-Player
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: id
+          description: Game id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Model for delete player with game
+  /games/all-players-count:
+    get:
+      tags:
+        - playersOnline
+      description: Players online
+      operationId: playersOnlineInfo
+      parameters:
+        - in: header
+          name: X-Player
+          required: true
+          schema:
+            - type: integer
+      responses:
+        '200':
+          description: Model for take all online players who play or wait a game
+
         #  ----- Components  ----------------------------------------
 components:                 
   schemas:

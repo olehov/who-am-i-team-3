@@ -23,15 +23,19 @@ public final class WaitingForPlayers implements GameState {
 
 	@Override
 	public GameState next() {
-		return Optional.of(this)
-				.filter(WaitingForPlayers::isReadyToNextState)
+		return Optional.of(this).get().setNextState();
+				/*.filter(WaitingForPlayers::isReadyToNextState)
 				.map(then -> new SuggestingCharacters(this.players))
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));*/
 	}
 
 	@Override
 	public int getPlayersInGame() {
 		return this.players.size();
+	}
+
+	private GameState setNextState(){
+		return new SuggestingCharacters(this.players);
 	}
 
 	@Override
@@ -49,10 +53,10 @@ public final class WaitingForPlayers implements GameState {
 		return this.getClass().getName();
 	}
 
-//	public static void main(String[] args) {
-//		WaitingForPlayers w = new WaitingForPlayers(4);
-//		System.out.println(w.getStatus());
-//	}
+	public static void main(String[] args) {
+		WaitingForPlayers w = new WaitingForPlayers(4);
+		System.out.println(w.getStatus());
+	}
 
 	@Override
 	public Optional<SynchronousPlayer> findPlayer(String player) {

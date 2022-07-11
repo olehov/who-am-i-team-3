@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.eleks.academy.whoami.core.state.GameState;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -55,7 +56,10 @@ public class GameServiceImpl implements GameService {
 		if (this.gameRepository.findPlayerByHeader(player).isPresent()) {
 			throw new PlayerAlreadyInGameException("ENROLL-TO-GAME: [" + player + "] already in other game.");
 		} else this.gameRepository.savePlayer(player);
-
+		Integer playersInGame = gameRepository.findById(id).get().getState().getPlayersInGame();
+		if(playersInGame.equals(4)){
+			gameRepository.findById(id).get().getStatus();
+		}
 		return this.gameRepository.findById(id).get().enrollToGame(player);
 	}
 
@@ -84,8 +88,8 @@ public class GameServiceImpl implements GameService {
 						}
 				);
 
-		SynchronousPlayer ingamePlayer = gameRepository.findById(id).flatMap(game -> game.findPlayer(player)).get();
-		return Optional.of(PlayerSuggestion.of(ingamePlayer));
+		SynchronousPlayer inGamePlayer = gameRepository.findById(id).flatMap(game -> game.findPlayer(player)).get();
+		return Optional.of(PlayerSuggestion.of(inGamePlayer));
 	}
 
 	@Override
@@ -121,7 +125,7 @@ public class GameServiceImpl implements GameService {
 		
 		if (!this.gameRepository.findPlayerByHeader(player).isPresent()) {
 
-			changePlayersOnline(player,this.gameRepository.playersOnlineInfo());
+			changePlayersOnline(player,this.gameRepository.playersOnlineInfo() + 1);
 
 
 			Map<String, SynchronousGame> games = gameRepository.findAvailableQuickGames();
@@ -149,9 +153,11 @@ public class GameServiceImpl implements GameService {
 			var game = this.gameRepository.findById(id);
 			
 			if (game.isPresent()) {
-				
-				this.gameRepository.deletePlayerByHeader(player);
+
+				game.get().getPlayersList().remove(player);
 				changePlayersOnline(player,this.gameRepository.playersOnlineInfo() - 1);
+
+				this.gameRepository.deletePlayerByHeader(player);
 				return Optional.of(LeaveModel.of(game.get().deletePlayerFromGame(player).get(), id));
 				
 			} else throw new GameNotFoundException("Game with id[" + id + "] not found.");
@@ -167,10 +173,10 @@ public class GameServiceImpl implements GameService {
 
 	@Override
 	public void changePlayersOnline(String player, int playersOnline) {
-		if(playersOnline == 0){
-			this.gameRepository.changePlayersOnline(1);
+		if(playersOnline <= 0){
+			this.gameRepository.changePlayersOnline(0);
 		}else {
-			this.gameRepository.changePlayersOnline(playersOnline + 1);
+			this.gameRepository.changePlayersOnline(playersOnline);
 		}
 	}
 

@@ -47,6 +47,12 @@ public class PersistentGame implements SynchronousGame {
 		this.currentState.add(new WaitingForPlayers(this.maxPlayers));
 	}
 
+	@Override
+	public void setState(GameState state) {
+		currentState.add(state);
+		currentState.poll();
+	}
+
 	/*
 	 * Creates a new quick game (game room)
 	 *
@@ -77,6 +83,12 @@ public class PersistentGame implements SynchronousGame {
 	public List<BasePlayerModel> getPlayersList() {
 		assert this.currentState.peek() != null;
 		return this.currentState.peek().getPlayersList().map(BasePlayerModel::of).toList();
+	}
+
+	@Override
+	public List<SynchronousPlayer> getPlayersListInGame() {
+		assert this.currentState.peek() != null;
+		return this.currentState.peek().getPlayersList().toList();
 	}
 
 	@Override
