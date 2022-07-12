@@ -121,10 +121,9 @@ public class GameController {
 	}
 
 	@DeleteMapping("/{id}/leave")
-//	@GetMapping("/{id}/leave")
 	public ResponseEntity<LeaveModel> leaveGame(@PathVariable("id") String id,
 												@RequestHeader(PLAYER) String player) {
-		
+
 		return this.gameService.leaveGame(id, player)
 				.map(ResponseEntity::ok)
 				.orElseGet(() -> ResponseEntity.ok().build());
@@ -133,5 +132,12 @@ public class GameController {
 	@GetMapping("all-players-count")
 	public Integer playersOnlineInfo(@RequestHeader(PLAYER) String player) {
 		return this.gameService.playersOnlineInfo(player);
+	}
+
+	@GetMapping("/{id}/players-in-game")
+	public ResponseEntity<Integer> playersInInline(@RequestHeader(PLAYER) String player, @PathVariable("id") String id){
+		return this.gameService.playersInGame(player,id)
+				.map(ResponseEntity::ok)
+				.orElseGet(()->ResponseEntity.notFound().build());
 	}
 }

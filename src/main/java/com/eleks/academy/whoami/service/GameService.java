@@ -45,6 +45,8 @@ public interface GameService {
 
 	void changePlayersOnline(String player, int playersOnline);
 
+	Optional<Integer> playersInGame(String player, String id);
+
 	Integer playersOnlineInfo(String player);
 	
 }

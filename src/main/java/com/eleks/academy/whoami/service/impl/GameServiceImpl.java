@@ -182,4 +182,9 @@ public class GameServiceImpl implements GameService {
 	public Integer playersOnlineInfo(String player) {
 		return this.gameRepository.playersOnlineInfo();
 	}
+
+	@Override
+	public Optional<Integer> playersInGame(String player, String id) {
+		return Optional.of(this.gameRepository.findById(id).get().getPlayersList().size());
+	}
 }
