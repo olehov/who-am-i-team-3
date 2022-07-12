@@ -23,10 +23,10 @@ public final class WaitingForPlayers implements GameState {
 
 	@Override
 	public GameState next() {
-		return Optional.of(this).get().setNextState();
-				/*.filter(WaitingForPlayers::isReadyToNextState)
+		return Optional.of(this)
+				.filter(WaitingForPlayers::isReadyToNextState)
 				.map(then -> new SuggestingCharacters(this.players))
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));*/
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 	}
 
 	@Override
@@ -67,8 +67,10 @@ public final class WaitingForPlayers implements GameState {
 	public Optional<SynchronousPlayer> remove(String player) {
 
 		if (findPlayer(player).isPresent()) {
-			return Optional.of(this.players.remove(player));
-		} else throw new PlayerNotFoundException("[" + player + "] not found.");
+			return Optional.ofNullable(this.players.remove(player));
+		} else {
+			throw new PlayerNotFoundException("[" + player + "] not found.");
+		}
 	}
 
 	public SynchronousPlayer add(SynchronousPlayer player) {
@@ -78,7 +80,7 @@ public final class WaitingForPlayers implements GameState {
 
 	@Override
 	public boolean isReadyToNextState() {
-		return players.size() == maxPlayers;
+		return players.size() >= maxPlayers;
 	}
 
 }

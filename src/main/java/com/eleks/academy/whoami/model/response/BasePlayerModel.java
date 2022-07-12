@@ -24,6 +24,10 @@ public class BasePlayerModel {
 	private boolean isSuggested;
 	
 	private boolean isCharacterAssigned;
+
+	public String getUserName(){
+		return this.username;
+	}
 	
 	public static BasePlayerModel of(SynchronousPlayer player) {
 		return BasePlayerModel.builder()

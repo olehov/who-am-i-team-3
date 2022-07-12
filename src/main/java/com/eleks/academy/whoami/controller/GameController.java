@@ -121,12 +121,13 @@ public class GameController {
 	}
 
 	@DeleteMapping("/{id}/leave")
+//	@GetMapping("/{id}/leave")
 	public ResponseEntity<LeaveModel> leaveGame(@PathVariable("id") String id,
 												@RequestHeader(PLAYER) String player) {
 		
 		return this.gameService.leaveGame(id, player)
 				.map(ResponseEntity::ok)
-				.orElseGet(() -> ResponseEntity.notFound().build());
+				.orElseGet(() -> ResponseEntity.ok().build());
 	}
 
 	@GetMapping("all-players-count")

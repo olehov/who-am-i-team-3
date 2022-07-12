@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.eleks.academy.whoami.core.state.WaitingForPlayers;
+import com.eleks.academy.whoami.model.response.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,14 +19,6 @@ import com.eleks.academy.whoami.core.impl.PersistentGame;
 import com.eleks.academy.whoami.core.state.SuggestingCharacters;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
-import com.eleks.academy.whoami.model.response.AllFields;
-import com.eleks.academy.whoami.model.response.GameDetails;
-import com.eleks.academy.whoami.model.response.GameLight;
-import com.eleks.academy.whoami.model.response.LeaveModel;
-import com.eleks.academy.whoami.model.response.PlayerSuggestion;
-import com.eleks.academy.whoami.model.response.QuickGame;
-import com.eleks.academy.whoami.model.response.StartGameModel;
-import com.eleks.academy.whoami.model.response.TurnDetails;
 import com.eleks.academy.whoami.repository.GameRepository;
 import com.eleks.academy.whoami.service.GameService;
 
@@ -153,7 +147,12 @@ public class GameServiceImpl implements GameService {
 			
 			if (game.isPresent()) {
 
-				game.get().getPlayersList().remove(player);
+				List<BasePlayerModel> players = game.get().getPlayersList();
+				players.stream().forEach(basePlayerModel -> {
+					if(basePlayerModel.getUserName().equals(player)){
+						game.get().deletePlayerFromGame(player);
+					}
+				});
 				changePlayersOnline(player,this.gameRepository.playersOnlineInfo() - 1);
 
 				this.gameRepository.deletePlayerByHeader(player);
