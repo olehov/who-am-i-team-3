@@ -129,7 +129,7 @@ public class GameController {
 				.orElseGet(() -> ResponseEntity.ok().build());
 	}
 
-	@GetMapping("all-players-count")
+	@GetMapping("/all-players-count")
 	public Integer playersOnlineInfo(@RequestHeader(PLAYER) String player) {
 		return this.gameService.playersOnlineInfo(player);
 	}
