@@ -28,4 +28,6 @@ public interface GameRepository {
 
 	int playersOnlineInfo();
 
+	String clearGames(String player);
+
 }

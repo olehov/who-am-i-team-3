@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
+import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -15,6 +16,7 @@ public final class WaitingForPlayers implements GameState {
 
 	private final int maxPlayers;
 	private final Map<String, SynchronousPlayer> players;
+	private List<SynchronousPlayer> playersOnline;
 
 	public WaitingForPlayers(int maxPlayers) {
 		this.maxPlayers = maxPlayers;
@@ -31,7 +33,8 @@ public final class WaitingForPlayers implements GameState {
 
 	@Override
 	public int getPlayersInGame() {
-		return this.players.size();
+		this.playersOnline = this.players.values().stream().toList();
+		return this.playersOnline.size();
 	}
 
 	private GameState setNextState(){
@@ -75,12 +78,13 @@ public final class WaitingForPlayers implements GameState {
 
 	public SynchronousPlayer add(SynchronousPlayer player) {
 		players.put(player.getUserName(), player);
+		playersOnline = players.values().stream().toList();
 		return player;
 	}
 
 	@Override
 	public boolean isReadyToNextState() {
-		return players.size() >= maxPlayers;
+		return players.size() == maxPlayers;
 	}
 
 }

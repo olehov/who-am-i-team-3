@@ -109,7 +109,12 @@ public class PersistentGame implements SynchronousGame {
 		GameState state = currentState.peek();
 
 		if (state instanceof WaitingForPlayers) {
-			return ((WaitingForPlayers) state).add(new PersistentPlayer(player, generateNickname()));
+			SynchronousPlayer synchronousPlayer = ((WaitingForPlayers) state).add(new PersistentPlayer(player, generateNickname()));
+			if(getPlayersInGame().equals(String.valueOf(maxPlayers))){
+				currentState.add(state.next());
+				currentState.poll();
+			}
+			return synchronousPlayer;
 		} else
 			throw new GameNotFoundException("Game [" + this.getId() + "] already at " + this.getStatus() + " state.");
 	}
@@ -128,7 +133,7 @@ public class PersistentGame implements SynchronousGame {
 	@Override
 	public SynchronousGame start() {
 //		this.currentState.peek().next();
-		this.currentState.add(Objects.requireNonNull(currentState.poll()).next());
+		this.currentState.add(currentState.peek().next());
 		return this;
 	}
 
@@ -136,7 +141,8 @@ public class PersistentGame implements SynchronousGame {
 	public boolean isAvailable() {
 		assert currentState.peek() != null;
 		if (currentState.peek().getPlayersInGame() == maxPlayers && currentState.peek() instanceof WaitingForPlayers) {
-			currentState.add(currentState.poll().next());
+			currentState.add(currentState.peek().next());
+			currentState.poll();
 		}
 		assert currentState.peek() != null;
 		return currentState.peek().getPlayersInGame() < maxPlayers && currentState.peek() instanceof WaitingForPlayers;

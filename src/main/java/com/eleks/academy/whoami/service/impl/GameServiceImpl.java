@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.eleks.academy.whoami.core.state.GameState;
 import com.eleks.academy.whoami.core.state.WaitingForPlayers;
 import com.eleks.academy.whoami.model.response.*;
 import org.springframework.http.HttpStatus;
@@ -49,10 +50,6 @@ public class GameServiceImpl implements GameService {
 		if (this.gameRepository.findPlayerByHeader(player).isPresent()) {
 			throw new PlayerAlreadyInGameException("ENROLL-TO-GAME: [" + player + "] already in other game.");
 		} else this.gameRepository.savePlayer(player);
-		Integer playersInGame = gameRepository.findById(id).get().getState().getPlayersInGame();
-		if(playersInGame.equals(4)){
-			gameRepository.findById(id).get().getStatus();
-		}
 		return this.gameRepository.findById(id).get().enrollToGame(player);
 	}
 
@@ -146,17 +143,10 @@ public class GameServiceImpl implements GameService {
 			var game = this.gameRepository.findById(id);
 			
 			if (game.isPresent()) {
-
-				List<BasePlayerModel> players = game.get().getPlayersList();
-				players.stream().forEach(basePlayerModel -> {
-					if(basePlayerModel.getUserName().equals(player)){
-						game.get().deletePlayerFromGame(player);
-					}
-				});
-				changePlayersOnline(player,this.gameRepository.playersOnlineInfo() - 1);
-
+				SynchronousPlayer synchronousPlayer = game.get().deletePlayerFromGame(player).get();
 				this.gameRepository.deletePlayerByHeader(player);
-				return Optional.of(LeaveModel.of(game.get().deletePlayerFromGame(player).get(), id));
+				changePlayersOnline(player, playersOnlineInfo(player) - 1);
+				return Optional.of(LeaveModel.of(synchronousPlayer, id));
 				
 			} else throw new GameNotFoundException("Game with id[" + id + "] not found.");
 			
@@ -186,5 +176,10 @@ public class GameServiceImpl implements GameService {
 	@Override
 	public Optional<Integer> playersInGame(String player, String id) {
 		return Optional.of(this.gameRepository.findById(id).get().getPlayersList().size());
+	}
+
+	@Override
+	public String clearGame(String player){
+		return this.gameRepository.clearGames(player);
 	}
 }

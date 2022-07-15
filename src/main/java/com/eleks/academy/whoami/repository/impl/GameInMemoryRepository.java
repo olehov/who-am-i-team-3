@@ -86,6 +86,14 @@ public class GameInMemoryRepository implements GameRepository {
 
 	@Override
 	public int playersOnlineInfo() {
-		return this.homeInfo.getPlayersOnline();
+		return this.players.size();
+	}
+
+	@Override
+	public String clearGames(String player) {
+		this.homeInfo.setPlayersOnline(0);
+		this.players.clear();
+		this.games.clear();
+		return "Games is cleared";
 	}
 }

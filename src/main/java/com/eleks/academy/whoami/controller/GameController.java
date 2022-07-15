@@ -140,4 +140,9 @@ public class GameController {
 				.map(ResponseEntity::ok)
 				.orElseGet(()->ResponseEntity.notFound().build());
 	}
+
+	@GetMapping("/clear")
+	public String clearGames(@RequestHeader(PLAYER) String player){
+		return this.gameService.clearGame(player);
+	}
 }

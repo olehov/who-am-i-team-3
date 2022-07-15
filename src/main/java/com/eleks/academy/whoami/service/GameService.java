@@ -48,5 +48,7 @@ public interface GameService {
 	Optional<Integer> playersInGame(String player, String id);
 
 	Integer playersOnlineInfo(String player);
+
+	public String clearGame(String player);
 	
 }
