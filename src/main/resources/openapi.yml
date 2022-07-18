@@ -336,6 +336,8 @@ components:
     CharacterSuggestion:
       type: object
       properties:
+        name:
+          type: string
         character:
           type: string
     TurnDetails:
