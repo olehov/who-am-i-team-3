@@ -49,8 +49,8 @@ public class PersistentGame implements SynchronousGame {
 
 	@Override
 	public void setState(GameState state) {
-		currentState.add(state);
-		currentState.poll();
+//		currentState.add(state);
+//		currentState.poll();
 	}
 
 	/*
@@ -110,7 +110,8 @@ public class PersistentGame implements SynchronousGame {
 
 		if (state instanceof WaitingForPlayers) {
 			SynchronousPlayer synchronousPlayer = ((WaitingForPlayers) state).add(new PersistentPlayer(player, generateNickname()));
-			if(getPlayersInGame().equals(String.valueOf(maxPlayers))){
+			Integer playersOnline = Integer.parseInt(getPlayersInGame());
+			if(playersOnline.equals(this.maxPlayers)){
 				currentState.add(state.next());
 				currentState.poll();
 			}
@@ -142,11 +143,13 @@ public class PersistentGame implements SynchronousGame {
 		assert currentState.peek() != null;
 		if (currentState.peek().getPlayersInGame() == maxPlayers && currentState.peek() instanceof WaitingForPlayers) {
 			currentState.add(currentState.peek().next());
+			currentState.element().next();
 			currentState.poll();
 		}
 		assert currentState.peek() != null;
 		return currentState.peek().getPlayersInGame() < maxPlayers && currentState.peek() instanceof WaitingForPlayers;
 	}
+
 
 	private <T, R> R applyIfPresent(T source, Function<T, R> mapper) {
 		return this.applyIfPresent(source, mapper, null);

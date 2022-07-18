@@ -4,14 +4,7 @@ import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.Message;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
-import com.eleks.academy.whoami.model.response.AllFields;
-import com.eleks.academy.whoami.model.response.GameDetails;
-import com.eleks.academy.whoami.model.response.GameLight;
-import com.eleks.academy.whoami.model.response.LeaveModel;
-import com.eleks.academy.whoami.model.response.PlayerSuggestion;
-import com.eleks.academy.whoami.model.response.QuickGame;
-import com.eleks.academy.whoami.model.response.StartGameModel;
-import com.eleks.academy.whoami.model.response.TurnDetails;
+import com.eleks.academy.whoami.model.response.*;
 import com.eleks.academy.whoami.service.GameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -65,8 +58,8 @@ public class GameController {
 	@PostMapping("/{id}/characters")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<PlayerSuggestion> suggestCharacter(@PathVariable("id") String id,
-															 @RequestHeader(PLAYER) String player,
-															 @Valid @RequestBody CharacterSuggestion suggestion) {
+															@RequestHeader(PLAYER) String player,
+															@Valid @RequestBody CharacterSuggestion suggestion) {
 		
 		return this.gameService.suggestCharacter(id, player, suggestion)
 				.map(ResponseEntity::ok)
@@ -126,12 +119,14 @@ public class GameController {
 
 		return this.gameService.leaveGame(id, player)
 				.map(ResponseEntity::ok)
-				.orElseGet(() -> ResponseEntity.ok().build());
+				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
 	@GetMapping("/all-players-count")
-	public Integer playersOnlineInfo(@RequestHeader(PLAYER) String player) {
-		return this.gameService.playersOnlineInfo(player);
+	public ResponseEntity<Integer> playersOnlineInfo(@RequestHeader(PLAYER) String player) {
+		return this.gameService.playersOnlineInfo(player)
+				.map(ResponseEntity::ok)
+				.orElseGet(()->ResponseEntity.notFound().build());
 	}
 
 	@GetMapping("/{id}/players-in-game")

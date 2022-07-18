@@ -30,4 +30,6 @@ public interface GameRepository {
 
 	String clearGames(String player);
 
+	void deleteGame(SynchronousGame game);
+
 }

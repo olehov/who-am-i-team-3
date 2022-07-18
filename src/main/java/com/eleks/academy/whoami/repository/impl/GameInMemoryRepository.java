@@ -96,4 +96,9 @@ public class GameInMemoryRepository implements GameRepository {
 		this.games.clear();
 		return "Games is cleared";
 	}
+
+	@Override
+	public void deleteGame(SynchronousGame game){
+		this.games.remove(game.getId());
+	}
 }

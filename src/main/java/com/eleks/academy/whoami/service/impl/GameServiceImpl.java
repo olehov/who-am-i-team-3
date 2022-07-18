@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.eleks.academy.whoami.core.state.GameState;
 import com.eleks.academy.whoami.core.state.WaitingForPlayers;
 import com.eleks.academy.whoami.model.response.*;
 import org.springframework.http.HttpStatus;
@@ -70,16 +69,16 @@ public class GameServiceImpl implements GameService {
 				.map(game -> game.findPlayer(player))
 				.ifPresentOrElse(p -> p.ifPresentOrElse(then -> then.suggest(suggestion),
 								() -> {
-									throw new PlayerNotFoundException("SUGGESTINGCHARACTERS: [" + player + "] in game with id[" + id + "] not found.");
+									throw new PlayerNotFoundException("SUGGESTING_CHARACTERS: [" + player + "] in game with id[" + id + "] not found.");
 								}
 						),
 						() -> {
-							throw new GameNotFoundException("SUGGESTINGCHARACTERS: Game with id[" + id + "] not found.");
+							throw new GameNotFoundException("SUGGESTING_CHARACTERS: Game with id[" + id + "] not found.");
 						}
 				);
 
-		SynchronousPlayer inGamePlayer = gameRepository.findById(id).flatMap(game -> game.findPlayer(player)).get();
-		return Optional.of(PlayerSuggestion.of(inGamePlayer));
+		PlayerSuggestion inGamePlayer = (PlayerSuggestion) gameRepository.findById(id).flatMap(game -> game.findPlayer(player)).get();
+		return Optional.of(inGamePlayer);
 	}
 
 	@Override
@@ -114,10 +113,6 @@ public class GameServiceImpl implements GameService {
 	public Optional<QuickGame> findQuickGame(String player) {
 		
 		if (!this.gameRepository.findPlayerByHeader(player).isPresent()) {
-
-			changePlayersOnline(player,this.gameRepository.playersOnlineInfo() + 1);
-
-
 			Map<String, SynchronousGame> games = gameRepository.findAvailableQuickGames();
 			
 			if (games.isEmpty()) {
@@ -142,10 +137,14 @@ public class GameServiceImpl implements GameService {
 
 			var game = this.gameRepository.findById(id);
 			
-			if (game.isPresent()) {
+			if (game.isPresent() && (game.get().getState() instanceof WaitingForPlayers || game.get().getState() instanceof SuggestingCharacters)) {
 				SynchronousPlayer synchronousPlayer = game.get().deletePlayerFromGame(player).get();
 				this.gameRepository.deletePlayerByHeader(player);
-				changePlayersOnline(player, playersOnlineInfo(player) - 1);
+
+				if(game.get().getPlayersInGame().equals("0")){
+					this.gameRepository.deleteGame(game.get());
+				}
+
 				return Optional.of(LeaveModel.of(synchronousPlayer, id));
 				
 			} else throw new GameNotFoundException("Game with id[" + id + "] not found.");
@@ -169,13 +168,13 @@ public class GameServiceImpl implements GameService {
 	}
 
 	@Override
-	public Integer playersOnlineInfo(String player) {
-		return this.gameRepository.playersOnlineInfo();
+	public Optional<Integer> playersOnlineInfo(String player) {
+		return Optional.ofNullable(this.gameRepository.playersOnlineInfo());
 	}
 
 	@Override
 	public Optional<Integer> playersInGame(String player, String id) {
-		return Optional.of(this.gameRepository.findById(id).get().getPlayersList().size());
+		return Optional.ofNullable(this.gameRepository.findById(id).get().getPlayersList().size());
 	}
 
 	@Override

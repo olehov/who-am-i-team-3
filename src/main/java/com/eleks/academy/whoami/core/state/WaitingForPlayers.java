@@ -17,6 +17,7 @@ public final class WaitingForPlayers implements GameState {
 	private final int maxPlayers;
 	private final Map<String, SynchronousPlayer> players;
 	private List<SynchronousPlayer> playersOnline;
+	//private boolean isAvailableToNextState = false;
 
 	public WaitingForPlayers(int maxPlayers) {
 		this.maxPlayers = maxPlayers;
@@ -84,7 +85,8 @@ public final class WaitingForPlayers implements GameState {
 
 	@Override
 	public boolean isReadyToNextState() {
-		return players.size() == maxPlayers;
+		//this.isAvailableToNextState = playersOnline.size() == maxPlayers;
+		return playersOnline.size() == maxPlayers;
 	}
 
 }
