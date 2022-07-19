@@ -24,4 +24,12 @@ public interface GameRepository {
 
 	Stream<SynchronousGame> findAllGames(String player);
 
+	void changePlayersOnline(int playersOnline);
+
+	int playersOnlineInfo();
+
+	String clearGames(String player);
+
+	void deleteGame(SynchronousGame game);
+
 }

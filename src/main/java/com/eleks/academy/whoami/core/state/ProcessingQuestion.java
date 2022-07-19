@@ -12,20 +12,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 // TODO: Implement makeTurn(...) and next() methods, pass a turn to next player
-public final class ProcessingQuestion extends AbstractGameState {
+public final class ProcessingQuestion implements GameState {
 
 	private final String currentPlayer;
-	
-	private final Map<String, SynchronousPlayer> players;
-	
-	private final Map<String, String> playerCharacterMap;
-	
-	public ProcessingQuestion(Map<String, SynchronousPlayer> players) {
-		super(players.size(), players.size());
 
+	private final Map<String, SynchronousPlayer> players;
+
+	private final Map<String, String> playerCharacterMap;
+
+	public ProcessingQuestion(Map<String, SynchronousPlayer> players) {
 		this.players = players;
 		this.playerCharacterMap = new ConcurrentHashMap<>();
-		
+
 		this.currentPlayer = players.keySet()
 				.stream()
 				.findAny()
@@ -41,11 +39,11 @@ public final class ProcessingQuestion extends AbstractGameState {
 	public Optional<SynchronousPlayer> findPlayer(String player) {
 		return Optional.ofNullable(this.players.get(player));
 	}
-	
+
 	public Map<String, String> getMap() {
 		return this.playerCharacterMap;
 	}
-	
+
 	public String getCurrentTurn() {
 		return this.currentPlayer;
 	}
@@ -53,6 +51,11 @@ public final class ProcessingQuestion extends AbstractGameState {
 	@Override
 	public GameState getCurrentState() {
 		return this;
+	}
+
+	@Override
+	public String getStatus() {
+		return null;
 	}
 
 	@Override
@@ -70,4 +73,8 @@ public final class ProcessingQuestion extends AbstractGameState {
 		return this.players.values().stream();
 	}
 
+	@Override
+	public int getPlayersInGame() {
+		return 0;
+	}
 }

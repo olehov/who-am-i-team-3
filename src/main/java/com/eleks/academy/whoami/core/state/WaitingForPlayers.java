@@ -7,16 +7,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
+import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-public final class WaitingForPlayers extends AbstractGameState {
+public final class WaitingForPlayers implements GameState {
 
+	private final int maxPlayers;
 	private final Map<String, SynchronousPlayer> players;
+	private List<SynchronousPlayer> playersOnline;
+	//private boolean isAvailableToNextState = false;
 
 	public WaitingForPlayers(int maxPlayers) {
-		super(0, maxPlayers);
+		this.maxPlayers = maxPlayers;
 		this.players = new HashMap<>(maxPlayers);
 	}
 
@@ -25,22 +29,37 @@ public final class WaitingForPlayers extends AbstractGameState {
 		return Optional.of(this)
 				.filter(WaitingForPlayers::isReadyToNextState)
 				.map(then -> new SuggestingCharacters(this.players))
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST)); // <--- fix exception
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 	}
 
 	@Override
 	public int getPlayersInGame() {
-		return this.players.size();
+		this.playersOnline = this.players.values().stream().toList();
+		return this.playersOnline.size();
 	}
-	
+
+	private GameState setNextState(){
+		return new SuggestingCharacters(this.players);
+	}
+
 	@Override
 	public Stream<SynchronousPlayer> getPlayersList() {
 		return this.players.values().stream();
 	}
-	
+
 	@Override
 	public GameState getCurrentState() {
 		return this;
+	}
+
+	@Override
+	public String getStatus() {
+		return this.getClass().getName();
+	}
+
+	public static void main(String[] args) {
+		WaitingForPlayers w = new WaitingForPlayers(4);
+		System.out.println(w.getStatus());
 	}
 
 	@Override
@@ -50,21 +69,24 @@ public final class WaitingForPlayers extends AbstractGameState {
 
 	@Override
 	public Optional<SynchronousPlayer> remove(String player) {
-		
+
 		if (findPlayer(player).isPresent()) {
-			return Optional.of(this.players.remove(player));
-		} else throw new PlayerNotFoundException("[" + player + "] not found.");
+			return Optional.ofNullable(this.players.remove(player));
+		} else {
+			throw new PlayerNotFoundException("[" + player + "] not found.");
+		}
 	}
-	
+
 	public SynchronousPlayer add(SynchronousPlayer player) {
 		players.put(player.getUserName(), player);
+		playersOnline = players.values().stream().toList();
 		return player;
 	}
 
 	@Override
 	public boolean isReadyToNextState() {
-		return players.size() == getMaxPlayers();
+		//this.isAvailableToNextState = playersOnline.size() == maxPlayers;
+		return playersOnline.size() == maxPlayers;
 	}
-
 
 }

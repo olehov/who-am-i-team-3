@@ -27,8 +27,12 @@ public interface SynchronousGame {
 
 	List<BasePlayerModel> getPlayersList();
 
+	List<SynchronousPlayer> getPlayersListInGame();
+
 	GameState getState();
 
 	Map<String, String> getMap();
+
+	void setState(GameState state);
 
 }

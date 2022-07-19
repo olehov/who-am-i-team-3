@@ -17,6 +17,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.eleks.academy.whoami.core.exception.PlayerNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -24,19 +25,17 @@ import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.core.exception.GameException;
 import com.eleks.academy.whoami.core.impl.GameCharacter;
 
-public final class SuggestingCharacters extends AbstractGameState {
+public final class SuggestingCharacters implements GameState {
 
 	private final Map<String, SynchronousPlayer> players;
-	
+
 	private final Map<String, List<GameCharacter>> suggestedCharacters;
-	
+
 	private final Map<String, String> playerCharacterMap;
 
 	public SuggestingCharacters(Map<String, SynchronousPlayer> players) {
-		super(players.size(), players.size());
-
 		this.players = players;
-		this.suggestedCharacters = new HashMap<>(this.players.size());		
+		this.suggestedCharacters = new HashMap<>(this.players.size());
 		this.playerCharacterMap = new ConcurrentHashMap<>(this.players.size());
 	}
 
@@ -54,17 +53,27 @@ public final class SuggestingCharacters extends AbstractGameState {
 				.map(then -> new ProcessingQuestion(this.players))
 				.orElseThrow(() -> new GameException("Cannot start game " + suggestedCharacters.size()));
 	}
-	
+
 	@Override
 	public GameState getCurrentState() {
 		return this;
 	}
-	
+
+	@Override
+	public String getStatus() {
+		return this.getClass().getName();
+	}
+
 	@Override
 	public Stream<SynchronousPlayer> getPlayersList() {
 		return this.players.values().stream();
 	}
-	
+
+	@Override
+	public int getPlayersInGame() {
+		return this.players.size();
+	}
+
 	@Override
 	public boolean isReadyToNextState() {
 		if (this.players
@@ -72,41 +81,46 @@ public final class SuggestingCharacters extends AbstractGameState {
 				.stream()
 				.filter(SynchronousPlayer::isSuggest)
 				.count() == this.players.size() && this.getCurrentState() instanceof SuggestingCharacters) {
-			
+
 			return true;
-		} else 
+		} else
 			throw new GameException("Game not ready to start");
 	}
-	
+
 	@Override
 	public Optional<SynchronousPlayer> findPlayer(String player) {
 		return Optional.ofNullable(this.players.get(player));
 	}
-	
+
 	@Override
 	public Optional<SynchronousPlayer> remove(String player) {
 		// TODO Auto-generated method stub
-		throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+		if (findPlayer(player).isPresent()) {
+			return Optional.ofNullable(this.players.remove(player));
+		} else {
+			throw new PlayerNotFoundException("[" + player + "] not found.");
+		}
+		//throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 	}
 
 	private GameState assign() {
-		
+
 		final var authors = this.players.keySet().stream().toList();
-		
+
 		int i = 0;
 		while (i < 3) {
 			this.players.get(authors.get(i)).setGameCharacter(this.players.get(authors.get(i+1)).getCharacterSuggestion());
 			i++;
 		}
-		
+
 		this.players.get(authors.get(3)).setGameCharacter(this.players.get(authors.get(0)).getCharacterSuggestion());
-		
+
 		if (!isAllPlayersAssigned()) {
 			throw new GameException("isAllPlayersAssigned = FALSE");
 		}
 		return this;
 	}
-	
+
 	private boolean isAllPlayersAssigned() {
 		return this.players
 				.values()
@@ -114,7 +128,7 @@ public final class SuggestingCharacters extends AbstractGameState {
 				.filter(SynchronousPlayer::isCharacterAssigned)
 				.count() == this.players.size();
 	}
-	
+
 	private void suggestCharacter(SynchronousPlayer player) {
 		List<GameCharacter> characters = this.suggestedCharacters.get(player.getUserName());
 
@@ -173,16 +187,16 @@ public final class SuggestingCharacters extends AbstractGameState {
 					final var character = this.getRandomCharacter().apply(nonTakenCharacters);
 
 					character.markTaken();
-					
+
 					this.players.get(player).setGameCharacter(character.getCharacter());
-					
+
 					this.playerCharacterMap.put(player, character.getCharacter());
 
 					nonTakenCharacters.remove(character);
 				});
-		
-		
-		
+
+
+
 		return this;
 	}
 
@@ -204,5 +218,4 @@ public final class SuggestingCharacters extends AbstractGameState {
 					.orElseGet(() -> list.get(0));
 		};
 	}
-
 }
