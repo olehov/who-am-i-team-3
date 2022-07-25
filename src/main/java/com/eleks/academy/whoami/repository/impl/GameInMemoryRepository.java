@@ -93,7 +93,7 @@ public class GameInMemoryRepository implements GameRepository {
 
 	@Override
 	public int playersOnlineInfo() {
-		return this.allPlayers.size();
+		return this.allPlayers.keySet().size();
 	}
 
 	@Override
