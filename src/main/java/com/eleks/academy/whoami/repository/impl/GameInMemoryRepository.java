@@ -1,13 +1,13 @@
 package com.eleks.academy.whoami.repository.impl;
 
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.eleks.academy.whoami.core.impl.PersistentPlayer;
 import com.eleks.academy.whoami.model.response.HomePageInfo;
 import org.springframework.stereotype.Repository;
 
@@ -17,11 +17,15 @@ import com.eleks.academy.whoami.repository.GameRepository;
 @Repository
 public class GameInMemoryRepository implements GameRepository {
 
+	private static final int DURATION = 30;
+	private static final TimeUnit UNIT = TimeUnit.SECONDS;
+
 	private final Map<String, SynchronousGame> games = new ConcurrentHashMap<>();
 
-	private final Map<String, String> players = new ConcurrentHashMap<>();
+	private final Map<String, String> playersInGame = new ConcurrentHashMap<>();
 
-	private final HomePageInfo homeInfo = new HomePageInfo();
+	private final Set<String> allPlayers = new HashSet<>();
+
 
 	@Override
 	public Stream<SynchronousGame> findAllAvailable(String player) {
@@ -54,17 +58,17 @@ public class GameInMemoryRepository implements GameRepository {
 
 	@Override
 	public Optional<String> findPlayerByHeader(String player) {
-		return Optional.ofNullable(this.players.get(player));
+		return Optional.ofNullable(this.playersInGame.get(player));
 	}
 
 	@Override
 	public void savePlayer(String player) {
-		this.players.put(player, player);
+		this.playersInGame.put(player, player);
 	}
 
 	@Override
 	public void deletePlayerByHeader(String player) {
-		this.players.remove(player);
+		this.playersInGame.remove(player);
 	}
 
 	@Override
@@ -79,26 +83,75 @@ public class GameInMemoryRepository implements GameRepository {
 				.collect(Collectors.toConcurrentMap(Entry::getKey, Entry::getValue));
 	}
 
-	@Override
-	public void changePlayersOnline(int playersOnline) {
-		this.homeInfo.setPlayersOnline(playersOnline);
+	private Future<String> getPlayer(String player){
+		return CompletableFuture.completedFuture(this.playersInGame.get(player));
 	}
 
 	@Override
 	public int playersOnlineInfo() {
-		return this.players.size();
+		return this.allPlayers.size();
+	}
+
+	@Override
+	public void checkPlayerStatus(String player) {
+//		this.allPlayers.stream().forEach(p ->
+//				{
+//					String player2 = null;
+//					try {
+//						player2 = getPlayer(p).get(DURATION, UNIT);
+//					} catch (InterruptedException e) {
+////				e.printStackTrace();
+//					} catch (ExecutionException e) {
+////				e.printStackTrace();
+//					} catch (TimeoutException e) {
+//						System.out.println("time out");
+////				e.printStackTrace();
+//					}
+//					if (player2 == null) {
+//						playersInGame.remove(p);
+//					}
+//				}
+//		);
+
+		for(var player1:allPlayers){
+			if(!player1.equals(playersInGame.get(player1)) && player1.equals(player)){
+				allPlayers.remove(player);
+			}
+		}
 	}
 
 	@Override
 	public String clearGames(String player) {
-		this.homeInfo.setPlayersOnline(0);
-		this.players.clear();
+		this.playersInGame.clear();
 		this.games.clear();
+		this.allPlayers.clear();
 		return "Games is cleared";
+	}
+
+	@Override
+	public void savePlayersOnline(String player) {
+		allPlayers.add(player);
+		//checkPlayerStatus(player);
 	}
 
 	@Override
 	public void deleteGame(SynchronousGame game){
 		this.games.remove(game.getId());
+	}
+
+	@Override
+	public boolean findPlayerInGame(String player) {
+		if(!this.allPlayers.isEmpty() && !this.playersInGame.isEmpty()){
+			try {
+
+//				if (this.allPlayers.get(player).equals(this.playersInGame.get(player))) {
+//					return true;
+//				}
+			}catch (NullPointerException e){
+				e.printStackTrace();
+				return false;
+			}
+		}
+		return false;
 	}
 }

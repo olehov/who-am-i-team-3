@@ -62,7 +62,7 @@ public class GameServiceImpl implements GameService {
 	 *TODO: check gameState
 	 */
 	@Override
-	public Optional<PlayerSuggestion> suggestCharacter(String id, String player, CharacterSuggestion suggestion) {
+	public Optional<PlayerWithState> suggestCharacter(String id, String player, CharacterSuggestion suggestion) {
 
 		this.gameRepository.findById(id)
 				.filter(g -> !g.isAvailable() && g.getState() instanceof SuggestingCharacters)
@@ -77,8 +77,9 @@ public class GameServiceImpl implements GameService {
 						}
 				);
 
-		PlayerSuggestion inGamePlayer = (PlayerSuggestion) gameRepository.findById(id).flatMap(game -> game.findPlayer(player)).get();
-		return Optional.of(inGamePlayer);
+		SynchronousPlayer inGamePlayer = gameRepository.findById(id).flatMap(game -> game.findPlayer(player)).get();
+		//return Optional.of(inGamePlayer);
+		return Optional.of(new PlayerWithState(inGamePlayer, suggestion, PlayerState.READY));
 	}
 
 	@Override
@@ -111,32 +112,32 @@ public class GameServiceImpl implements GameService {
 
 	@Override
 	public Optional<QuickGame> findQuickGame(String player) {
-		
+
 		if (!this.gameRepository.findPlayerByHeader(player).isPresent()) {
 			Map<String, SynchronousGame> games = gameRepository.findAvailableQuickGames();
-			
+
 			if (games.isEmpty()) {
-				
+
 				final SynchronousGame game = gameRepository.save(new PersistentGame(4));
 				enrollToGame(game.getId(), player);
-				
+
 				return gameRepository.findById(game.getId()).map(QuickGame::of);
 			}
-			
+
 			var FirstGame = games.keySet().stream().findFirst().get();
 			enrollToGame(games.get(FirstGame).getId(), player);
-			
+
 			return gameRepository.findById(games.get(FirstGame).getId()).map(QuickGame::of);
 		} else throw new PlayerAlreadyInGameException("QUICK-GAME: [" + player + "] already in other game.");
 	}
 
 	@Override
 	public Optional<LeaveModel> leaveGame(String id, String player) {
-		
+
 		if (this.gameRepository.findPlayerByHeader(player).isPresent()) {
 
 			var game = this.gameRepository.findById(id);
-			
+
 			if (game.isPresent() && (game.get().getState() instanceof WaitingForPlayers || game.get().getState() instanceof SuggestingCharacters)) {
 				SynchronousPlayer synchronousPlayer = game.get().deletePlayerFromGame(player).get();
 				this.gameRepository.deletePlayerByHeader(player);
@@ -146,9 +147,9 @@ public class GameServiceImpl implements GameService {
 				}
 
 				return Optional.of(LeaveModel.of(synchronousPlayer, id));
-				
+
 			} else throw new GameNotFoundException("Game with id[" + id + "] not found.");
-			
+
 		} else throw new PlayerNotFoundException("[" + player + "] in game with id[" + id + "] not found.");
 
 	}
@@ -156,15 +157,6 @@ public class GameServiceImpl implements GameService {
 	@Override
 	public List<AllFields> findAllGamesInfo(String player) {
 		return this.gameRepository.findAllGames(player).map(AllFields::of).toList();
-	}
-
-	@Override
-	public void changePlayersOnline(String player, int playersOnline) {
-		if(playersOnline <= 0){
-			this.gameRepository.changePlayersOnline(0);
-		}else {
-			this.gameRepository.changePlayersOnline(playersOnline);
-		}
 	}
 
 	@Override
@@ -180,5 +172,20 @@ public class GameServiceImpl implements GameService {
 	@Override
 	public String clearGame(String player){
 		return this.gameRepository.clearGames(player);
+	}
+
+	@Override
+	public void savePlayersOnline(String player) {
+		this.gameRepository.savePlayersOnline(player);
+	}
+
+	@Override
+	public boolean findPlayerInGame(String player) {
+		return this.gameRepository.findPlayerInGame(player);
+	}
+
+	@Override
+	public void checkPlayerStatus(String player) {
+		this.gameRepository.checkPlayerStatus(player);
 	}
 }

@@ -17,23 +17,33 @@ import java.util.List;
 import static com.eleks.academy.whoami.utils.StringUtils.Headers.PLAYER;
 
 @RestController
-@RequestMapping("/games")
+@RequestMapping("/")
 @RequiredArgsConstructor
 public class GameController {
 
 	private final GameService gameService;
 
 	@GetMapping
+	public void savePlayersOnline(@RequestHeader(PLAYER) String player){
+		this.gameService.savePlayersOnline(player);
+	}
+
+	@GetMapping("/check")
+	public void checkPlayerStatus(String player){
+		this.gameService.checkPlayerStatus(player);
+	}
+
+	@GetMapping("/games")
 	public List<GameLight> findAvailableGames(@RequestHeader(PLAYER) String player) {
 		return this.gameService.findAvailableGames(player);
 	}
 	
-	@GetMapping("/info")
+	@GetMapping("/games/info")
 	public List<AllFields> findAllGamesInfo(@RequestHeader(PLAYER) String player) {
 		return this.gameService.findAllGamesInfo(player);
 	}
 	
-	@PostMapping("/create")
+	@PostMapping("/games/create")
 	@ResponseStatus(HttpStatus.CREATED)
 	public GameDetails createGame(@RequestHeader(PLAYER) String player,
 								  @Valid @RequestBody NewGameRequest gameRequest) {
@@ -41,7 +51,7 @@ public class GameController {
 		return this.gameService.createGame(player, gameRequest);
 	}
 
-	@GetMapping("/{id}")
+	@GetMapping("/games/{id}")
 	public ResponseEntity<GameDetails> findById(@PathVariable("id") String id,
 												@RequestHeader(PLAYER) String player) {
 		return this.gameService.findByIdAndPlayer(id, player)
@@ -49,15 +59,15 @@ public class GameController {
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
-	@PostMapping("/{id}/players")
+	@PostMapping("/games/{id}/players")
 	public SynchronousPlayer enrollToGame(@PathVariable("id") String id,
 										  @RequestHeader(PLAYER) String player) {
 		return this.gameService.enrollToGame(id, player);
 	}
 
-	@PostMapping("/{id}/characters")
+	@PostMapping("/games/{id}/characters")
 	@ResponseStatus(HttpStatus.OK)
-	public ResponseEntity<PlayerSuggestion> suggestCharacter(@PathVariable("id") String id,
+	public ResponseEntity<PlayerWithState> suggestCharacter(@PathVariable("id") String id,
 															@RequestHeader(PLAYER) String player,
 															@Valid @RequestBody CharacterSuggestion suggestion) {
 		
@@ -66,7 +76,7 @@ public class GameController {
 				.orElseGet(() -> ResponseEntity.badRequest().build());
 	}
 
-	@GetMapping("/{id}/turn")
+	@GetMapping("/games/{id}/turn")
 	public ResponseEntity<TurnDetails> findTurnInfo(@PathVariable("id") String id,
 													@RequestHeader(PLAYER) String player) {
 		
@@ -75,7 +85,7 @@ public class GameController {
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 	
-	@PostMapping("/{id}")
+	@PostMapping("/games/{id}")
 	public ResponseEntity<StartGameModel> startGame(@PathVariable("id") String id,
 												 @RequestHeader(PLAYER) String player) {
 		return this.gameService.startGame(id, player)
@@ -83,21 +93,21 @@ public class GameController {
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
-	@PostMapping("/{id}/questions")
+	@PostMapping("/games/{id}/questions")
 	public void askQuestion(@PathVariable("id") String id,
 							@RequestHeader(PLAYER) String player, @RequestBody Message message) {
 		
 		this.gameService.askQuestion(id, player, message.getMessage());
 	}
 
-	@PostMapping("/{id}/guess")
+	@PostMapping("/games/{id}/guess")
 	public void submitGuess(@PathVariable("id") String id,
 							@RequestHeader(PLAYER) String player, @RequestBody Message message) {
 		
 		this.gameService.submitGuess(id, player, message.getMessage());
 	}
 
-	@PostMapping("/{id}/answer")
+	@PostMapping("/games/{id}/answer")
 	public void answerQuestion(@PathVariable("id") String id,
 							   @RequestHeader(PLAYER) String player, @RequestBody Message message) {
 		
@@ -105,7 +115,7 @@ public class GameController {
 
 	}
 	
-	@PostMapping("/quick")
+	@PostMapping("/games/quick")
 	public ResponseEntity<QuickGame> findQuickGame(@RequestHeader(PLAYER) String player) {
 		
 		return this.gameService.findQuickGame(player)
@@ -113,7 +123,7 @@ public class GameController {
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
-	@DeleteMapping("/{id}/leave")
+	@DeleteMapping("/games/{id}/leave")
 	public ResponseEntity<LeaveModel> leaveGame(@PathVariable("id") String id,
 												@RequestHeader(PLAYER) String player) {
 
@@ -122,21 +132,21 @@ public class GameController {
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
-	@GetMapping("/all-players-count")
+	@GetMapping("/games/all-players-count")
 	public ResponseEntity<Integer> playersOnlineInfo(@RequestHeader(PLAYER) String player) {
 		return this.gameService.playersOnlineInfo(player)
 				.map(ResponseEntity::ok)
 				.orElseGet(()->ResponseEntity.notFound().build());
 	}
 
-	@GetMapping("/{id}/players-in-game")
+	@GetMapping("/games/{id}/players-in-game")
 	public ResponseEntity<Integer> playersInInline(@RequestHeader(PLAYER) String player, @PathVariable("id") String id){
 		return this.gameService.playersInGame(player,id)
 				.map(ResponseEntity::ok)
 				.orElseGet(()->ResponseEntity.notFound().build());
 	}
 
-	@GetMapping("/clear")
+	@GetMapping("/games/clear")
 	public String clearGames(@RequestHeader(PLAYER) String player){
 		return this.gameService.clearGame(player);
 	}

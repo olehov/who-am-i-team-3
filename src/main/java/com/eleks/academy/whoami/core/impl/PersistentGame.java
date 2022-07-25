@@ -7,9 +7,11 @@ import java.util.function.Function;
 
 import com.eleks.academy.whoami.core.SynchronousGame;
 import com.eleks.academy.whoami.core.SynchronousPlayer;
+import com.eleks.academy.whoami.core.exception.GameException;
 import com.eleks.academy.whoami.core.exception.GameNotFoundException;
 import com.eleks.academy.whoami.core.state.GameState;
 import com.eleks.academy.whoami.core.state.ProcessingQuestion;
+import com.eleks.academy.whoami.core.state.SuggestingCharacters;
 import com.eleks.academy.whoami.core.state.WaitingForPlayers;
 import com.eleks.academy.whoami.model.response.BasePlayerModel;
 
@@ -110,11 +112,7 @@ public class PersistentGame implements SynchronousGame {
 
 		if (state instanceof WaitingForPlayers) {
 			SynchronousPlayer synchronousPlayer = ((WaitingForPlayers) state).add(new PersistentPlayer(player, generateNickname()));
-			Integer playersOnline = Integer.parseInt(getPlayersInGame());
-			if(playersOnline.equals(this.maxPlayers)){
-				currentState.add(state.next());
-				currentState.poll();
-			}
+			isAvailable();
 			return synchronousPlayer;
 		} else
 			throw new GameNotFoundException("Game [" + this.getId() + "] already at " + this.getStatus() + " state.");
@@ -133,8 +131,11 @@ public class PersistentGame implements SynchronousGame {
 
 	@Override
 	public SynchronousGame start() {
-//		this.currentState.peek().next();
+		//this.currentState.peek().next();
 		this.currentState.add(currentState.peek().next());
+//		if(!isAvailable()) {
+//			return this;
+//		}else throw new GameException("Game not ready to start");
 		return this;
 	}
 

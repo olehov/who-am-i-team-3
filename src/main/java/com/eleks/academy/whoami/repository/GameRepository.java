@@ -24,7 +24,6 @@ public interface GameRepository {
 
 	Stream<SynchronousGame> findAllGames(String player);
 
-	void changePlayersOnline(int playersOnline);
 
 	int playersOnlineInfo();
 
@@ -32,4 +31,9 @@ public interface GameRepository {
 
 	void deleteGame(SynchronousGame game);
 
+	void savePlayersOnline(String player);
+
+	boolean findPlayerInGame(String player);
+
+	void checkPlayerStatus(String player);
 }

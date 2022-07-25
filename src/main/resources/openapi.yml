@@ -4,7 +4,7 @@ info:
   title: Who am I?
   description: Rest Api description
 servers:
-  - url: http://localhost:8090/api/v1	  
+  - url: https://who-am-i-group1.herokuapp.com/api/v1
 paths:
   /games:
     get:
@@ -336,7 +336,7 @@ components:
     CharacterSuggestion:
       type: object
       properties:
-        name:
+        nickname:
           type: string
         character:
           type: string

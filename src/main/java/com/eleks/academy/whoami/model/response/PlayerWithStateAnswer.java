@@ -12,12 +12,20 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PlayerWithState {
+public class PlayerWithStateAnswer {
 
-    private SynchronousPlayer player;
+	private SynchronousPlayer player;
 
-    private CharacterSuggestion characterSuggestion;
+	private QuestionAnswer answer;
 
-    private PlayerState state;
+	private PlayerState state;
+//
+//	public static PlayerWithStateAnswer of(SynchronousPlayer synchronousPlayer, QuestionAnswer answer, PlayerState state){
+//		return PlayerWithStateAnswer.builder()
+//				.player(synchronousPlayer)
+//				.answer(answer)
+//				.state(state)
+//				.build();
+//	}
 
 }

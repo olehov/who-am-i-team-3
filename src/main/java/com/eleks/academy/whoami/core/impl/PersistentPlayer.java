@@ -12,19 +12,17 @@ public class PersistentPlayer implements SynchronousPlayer {
 
 	private final String username;
 	
-	private String nickname;
-	
-	private String characterSuggestion;
+	private final CharacterSuggestion characterSuggestion = new CharacterSuggestion();
 	
 	private boolean isSuggested = Boolean.FALSE;
-	
+
 	private String gameCharacter;
 	
 	private boolean isCharacterAssigned = Boolean.FALSE;
 	
-	public PersistentPlayer(String username, String nickname) {
+	public PersistentPlayer(String username, String nickName) {
 		this.username = Objects.requireNonNull(username);
-		this.nickname = Objects.requireNonNull(nickname);
+		this.characterSuggestion.setNickname(Objects.requireNonNull(nickName));
 	}
 	
 	@Override
@@ -38,11 +36,11 @@ public class PersistentPlayer implements SynchronousPlayer {
 	}
 	
 	private void setNickName(String nickname) {
-		this.nickname = nickname;
+		this.characterSuggestion.setNickname(nickname);
 	}
 
 	private void setCharacter(String character) {
-		this.characterSuggestion = character;
+		this.characterSuggestion.setCharacter(character);
 	}
 	
 	@Override
@@ -52,12 +50,12 @@ public class PersistentPlayer implements SynchronousPlayer {
 	
 	@Override
 	public String getNickName() {
-		return this.nickname;
+		return this.characterSuggestion.getNickname();
 	}
 	
 	@Override
 	public String getCharacterSuggestion() {
-		return this.characterSuggestion;
+		return this.characterSuggestion.getCharacter();
 	}
 	
 	@Override
@@ -85,5 +83,5 @@ public class PersistentPlayer implements SynchronousPlayer {
 		}
 		
 	}
-	
+
 }

@@ -18,7 +18,7 @@ public interface GameService {
 
 	Optional<GameDetails> findByIdAndPlayer(String id, String player);
 
-	Optional<PlayerSuggestion> suggestCharacter(String id, String player, CharacterSuggestion suggestion);
+	Optional<PlayerWithState> suggestCharacter(String id, String player, CharacterSuggestion suggestion);
 
 	Optional<StartGameModel> startGame(String id, String player);
 
@@ -36,12 +36,16 @@ public interface GameService {
 
 	List<AllFields> findAllGamesInfo(String player);
 
-	void changePlayersOnline(String player, int playersOnline);
-
 	Optional<Integer> playersInGame(String player, String id);
 
 	Optional<Integer> playersOnlineInfo(String player);
 
-	public String clearGame(String player);
+	String clearGame(String player);
+
+	void savePlayersOnline(String player);
+
+	boolean findPlayerInGame(String player);
+
+	void checkPlayerStatus(String player);
 	
 }
