@@ -17,14 +17,14 @@ import com.eleks.academy.whoami.repository.GameRepository;
 @Repository
 public class GameInMemoryRepository implements GameRepository {
 
-	private static final int DURATION = 30;
-	private static final TimeUnit UNIT = TimeUnit.SECONDS;
+	private static final int DURATION = 3;
+	private static final TimeUnit UNIT = TimeUnit.MINUTES;
 
 	private final Map<String, SynchronousGame> games = new ConcurrentHashMap<>();
 
 	private final Map<String, String> playersInGame = new ConcurrentHashMap<>();
 
-	private final Set<String> allPlayers = new HashSet<>();
+	private final Map<String, String> allPlayers = new ConcurrentHashMap();
 
 
 	@Override
@@ -84,7 +84,11 @@ public class GameInMemoryRepository implements GameRepository {
 	}
 
 	private Future<String> getPlayer(String player){
-		return CompletableFuture.completedFuture(this.playersInGame.get(player));
+		try {
+			return CompletableFuture.completedFuture(this.playersInGame.get(player));
+		}catch (NullPointerException e){
+			return null;
+		}
 	}
 
 	@Override
@@ -113,10 +117,18 @@ public class GameInMemoryRepository implements GameRepository {
 //				}
 //		);
 
-		for(var player1:allPlayers){
-			if(!player1.equals(playersInGame.get(player1)) && player1.equals(player)){
-				allPlayers.remove(player);
+//		for(var player1:allPlayers){
+//			if(!player1.equals(playersInGame.get(player1)) && player1.equals(player)){
+//				allPlayers.remove(player);
+//			}
+//		}
+
+		try {
+			if(getPlayer(player).get(DURATION,UNIT).isEmpty()){
+				this.allPlayers.remove(player);
 			}
+		} catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
+			allPlayers.remove(player);
 		}
 	}
 
@@ -130,7 +142,7 @@ public class GameInMemoryRepository implements GameRepository {
 
 	@Override
 	public void savePlayersOnline(String player) {
-		allPlayers.add(player);
+		allPlayers.put(player, player);
 		//checkPlayerStatus(player);
 	}
 
