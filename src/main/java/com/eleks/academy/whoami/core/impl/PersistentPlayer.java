@@ -34,8 +34,9 @@ public class PersistentPlayer implements SynchronousPlayer {
 	public boolean isCharacterAssigned() {
 		return isCharacterAssigned;
 	}
-	
-	private void setNickName(String nickname) {
+
+	@Override
+	public void setNickName(String nickname) {
 		this.characterSuggestion.setNickname(nickname);
 	}
 

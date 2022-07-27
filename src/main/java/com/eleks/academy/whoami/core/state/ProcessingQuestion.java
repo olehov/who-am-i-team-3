@@ -8,19 +8,28 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
+import com.eleks.academy.whoami.core.exception.PlayerNotFoundException;
+import com.eleks.academy.whoami.core.impl.StartGameAnswer;
+import com.eleks.academy.whoami.model.chat.ChatHistory;
+import com.eleks.academy.whoami.model.response.PlayerState;
+import com.eleks.academy.whoami.model.response.PlayerWithState;
 
 // TODO: Implement makeTurn(...) and next() methods, pass a turn to next player
 public final class ProcessingQuestion implements GameState {
 
+	private static final String QUESTION = "QUESTION";
+
+	private static final String GUESS = "GUESS";
+
+	private final ChatHistory chatHistory = new ChatHistory();
+
 	private final String currentPlayer;
 
-	private final Map<String, SynchronousPlayer> players;
+	private final Map<String, PlayerWithState> players;
 
 	private final Map<String, String> playerCharacterMap;
 
-	public ProcessingQuestion(Map<String, SynchronousPlayer> players) {
+	public ProcessingQuestion(Map<String, PlayerWithState> players) {
 		this.players = players;
 		this.playerCharacterMap = new ConcurrentHashMap<>();
 
@@ -36,7 +45,7 @@ public final class ProcessingQuestion implements GameState {
 	}
 
 	@Override
-	public Optional<SynchronousPlayer> findPlayer(String player) {
+	public Optional<PlayerWithState> findPlayer(String player) {
 		return Optional.ofNullable(this.players.get(player));
 	}
 
@@ -55,7 +64,7 @@ public final class ProcessingQuestion implements GameState {
 
 	@Override
 	public String getStatus() {
-		return null;
+		return this.getClass().toString();
 	}
 
 	@Override
@@ -65,16 +74,31 @@ public final class ProcessingQuestion implements GameState {
 
 	@Override
 	public Optional<SynchronousPlayer> remove(String player) {
-		throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+		if (findPlayer(player).isPresent()) {
+			return Optional.ofNullable(this.players.remove(player).getPlayer());
+		} else {
+			throw new PlayerNotFoundException("[" + player + "] not found.");
+		}
 	}
 
 	@Override
-	public Stream<SynchronousPlayer> getPlayersList() {
+	public Stream<PlayerWithState> getPlayersList() {
 		return this.players.values().stream();
 	}
 
 	@Override
 	public int getPlayersInGame() {
-		return 0;
+		return players.size();
+	}
+
+	public void askQuestion(String player, String question) {
+		PlayerWithState playerWithState = players.get(currentPlayer);
+		if (playerWithState.getState().equals(PlayerState.ASKING)) {
+			StartGameAnswer gameAnswer = new StartGameAnswer(player);
+			gameAnswer.setMessage(question);
+			this.chatHistory.addQuestion(player, QUESTION, question);
+		}else {
+			throw new GameException("Player " + player + " doesn't ask question in this turn");
+		}
 	}
 }

@@ -1,6 +1,7 @@
 package com.eleks.academy.whoami.core.impl;
 
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -8,7 +9,7 @@ import lombok.RequiredArgsConstructor;
  * Extend this class in case more input is needed
  * for a specific {@link com.eleks.academy.whoami.core.state.GameState}
  */
-@Getter
+@Data
 @AllArgsConstructor
 @RequiredArgsConstructor
 public sealed class Answer permits StartGameAnswer {

@@ -329,7 +329,7 @@ components:
     SynchronousPlayer:
       type: object
       properties:
-        name:
+        nickname:
           type: string
         character:
           type: string

@@ -3,20 +3,19 @@ package com.eleks.academy.whoami.core.state;
 import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.core.exception.PlayerNotFoundException;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
-import java.util.List;
 
+import com.eleks.academy.whoami.model.response.PlayerState;
+import com.eleks.academy.whoami.model.response.PlayerWithState;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 public final class WaitingForPlayers implements GameState {
 
 	private final int maxPlayers;
-	private final Map<String, SynchronousPlayer> players;
-	private List<SynchronousPlayer> playersOnline;
+	private final Map<String, PlayerWithState> players;
+	private List<PlayerWithState> playersOnline;
 	//private boolean isAvailableToNextState = false;
 
 	public WaitingForPlayers(int maxPlayers) {
@@ -43,7 +42,10 @@ public final class WaitingForPlayers implements GameState {
 	}
 
 	@Override
-	public Stream<SynchronousPlayer> getPlayersList() {
+	public Stream<PlayerWithState> getPlayersList() {
+		List<SynchronousPlayer> synchronousPlayerList = new LinkedList<>();
+		players.values().forEach(p->synchronousPlayerList.add(p.getPlayer()));
+		//return synchronousPlayerList.stream();
 		return this.players.values().stream();
 	}
 
@@ -63,7 +65,7 @@ public final class WaitingForPlayers implements GameState {
 	}
 
 	@Override
-	public Optional<SynchronousPlayer> findPlayer(String player) {
+	public Optional<PlayerWithState> findPlayer(String player) {
 		return Optional.ofNullable(this.players.get(player));
 	}
 
@@ -71,15 +73,15 @@ public final class WaitingForPlayers implements GameState {
 	public Optional<SynchronousPlayer> remove(String player) {
 
 		if (findPlayer(player).isPresent()) {
-			return Optional.ofNullable(this.players.remove(player));
+			return Optional.ofNullable(this.players.remove(player).getPlayer());
 		} else {
 			throw new PlayerNotFoundException("[" + player + "] not found.");
 		}
 	}
 
 	public SynchronousPlayer add(SynchronousPlayer player) {
-		players.put(player.getUserName(), player);
-		playersOnline = players.values().stream().toList();
+		this.players.put(player.getUserName(),
+				new PlayerWithState(player, null, PlayerState.NOT_READY));
 		return player;
 	}
 

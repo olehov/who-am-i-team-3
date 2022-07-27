@@ -1,6 +1,7 @@
 package com.eleks.academy.whoami.core.state;
 
 import com.eleks.academy.whoami.core.SynchronousPlayer;
+import com.eleks.academy.whoami.model.response.PlayerWithState;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -22,7 +23,7 @@ public final class GameFinished implements GameState {
 	}
 
 	@Override
-	public Optional<SynchronousPlayer> findPlayer(String player) {
+	public Optional<PlayerWithState> findPlayer(String player) {
 		return Optional.empty();
 	}
 
@@ -50,7 +51,7 @@ public final class GameFinished implements GameState {
 	}
 
 	@Override
-	public Stream<SynchronousPlayer> getPlayersList() {
+	public Stream<PlayerWithState> getPlayersList() {
 		// TODO Auto-generated method stub
 		return null;
 	}

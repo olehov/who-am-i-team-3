@@ -1,10 +1,12 @@
 package com.eleks.academy.whoami.service;
 
+import java.lang.reflect.Member;
 import java.util.List;
 import java.util.Optional;
 
 import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
+import com.eleks.academy.whoami.model.request.Message;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
 import com.eleks.academy.whoami.model.response.*;
 
@@ -18,11 +20,11 @@ public interface GameService {
 
 	Optional<GameDetails> findByIdAndPlayer(String id, String player);
 
-	Optional<PlayerWithState> suggestCharacter(String id, String player, CharacterSuggestion suggestion);
+	void suggestCharacter(String id, String player, CharacterSuggestion suggestion);
 
 	Optional<StartGameModel> startGame(String id, String player);
 
-	void askQuestion(String gameId, String player, String message);
+	void askQuestion(String gameId, String player, Message message);
 
 	Optional<TurnDetails> findTurnInfo(String id, String player);
 

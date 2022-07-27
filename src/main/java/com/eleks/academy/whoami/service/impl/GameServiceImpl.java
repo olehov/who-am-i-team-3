@@ -4,7 +4,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.eleks.academy.whoami.core.state.ProcessingQuestion;
 import com.eleks.academy.whoami.core.state.WaitingForPlayers;
+import com.eleks.academy.whoami.model.request.Message;
 import com.eleks.academy.whoami.model.response.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -62,24 +64,26 @@ public class GameServiceImpl implements GameService {
 	 *TODO: check gameState
 	 */
 	@Override
-	public Optional<PlayerWithState> suggestCharacter(String id, String player, CharacterSuggestion suggestion) {
+	public void suggestCharacter(String id, String player, CharacterSuggestion suggestion) {
 
-		this.gameRepository.findById(id)
-				.filter(g -> !g.isAvailable() && g.getState() instanceof SuggestingCharacters)
-				.map(game -> game.findPlayer(player))
-				.ifPresentOrElse(p -> p.ifPresentOrElse(then -> then.suggest(suggestion),
-								() -> {
-									throw new PlayerNotFoundException("SUGGESTING_CHARACTERS: [" + player + "] in game with id[" + id + "] not found.");
-								}
-						),
-						() -> {
-							throw new GameNotFoundException("SUGGESTING_CHARACTERS: Game with id[" + id + "] not found.");
-						}
-				);
+//        this.gameRepository.findById(id)
+//                .filter(game -> game.getState() instanceof SuggestingCharacters)
+//                .ifPresentOrElse(game -> game.suggestCharacter(player, suggestion),
+//                        () -> {
+//                            throw new GameNotFoundException("SUGGESTING-CHARACTERS: Game with id[" + id + "] not found.");
+//                        }
+//                );
+		SynchronousGame game = this.gameRepository.findById(id).get();
+		if(game.getState() instanceof SuggestingCharacters){
+			game.suggestCharacter(player, suggestion);
+		}else{
+			throw new GameNotFoundException("SUGGESTING-CHARACTERS: Game with id[" + id + "] not found.");
 
-		SynchronousPlayer inGamePlayer = gameRepository.findById(id).flatMap(game -> game.findPlayer(player)).get();
+		}
+
+		//SynchronousPlayer inGamePlayer = gameRepository.findById(id).flatMap(game -> game.findPlayer(player)).get();
 		//return Optional.of(inGamePlayer);
-		return Optional.of(new PlayerWithState(inGamePlayer, suggestion, PlayerState.READY));
+		//return Optional.of(PlayerSuggestion.of(inGamePlayer, suggestion));
 	}
 
 	@Override
@@ -91,8 +95,15 @@ public class GameServiceImpl implements GameService {
 	}
 
 	@Override
-	public void askQuestion(String gameId, String player, String message) {
-		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
+	public void askQuestion(String gameId, String player, Message message) {
+		this.gameRepository.findById(gameId)
+				.filter(game -> game.getState() instanceof ProcessingQuestion)
+				.ifPresentOrElse(game -> game.askQuestion(player, message.getMessage()),
+						() -> {
+							throw new GameNotFoundException("PROCESSING-QUESTION: Game with id[" + gameId + "] not found.");
+						}
+				);
+//		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
 
 	@Override
@@ -166,7 +177,8 @@ public class GameServiceImpl implements GameService {
 
 	@Override
 	public Optional<Integer> playersInGame(String player, String id) {
-		return Optional.ofNullable(this.gameRepository.findById(id).get().getPlayersList().size());
+		return Optional.of(this.gameRepository.findById(id).get().getPlayersList().size());
+
 	}
 
 	@Override

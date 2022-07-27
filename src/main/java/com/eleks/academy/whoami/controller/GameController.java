@@ -67,13 +67,12 @@ public class GameController {
 
 	@PostMapping("/games/{id}/characters")
 	@ResponseStatus(HttpStatus.OK)
-	public ResponseEntity<PlayerWithState> suggestCharacter(@PathVariable("id") String id,
+	public String suggestCharacter(@PathVariable("id") String id,
 															@RequestHeader(PLAYER) String player,
 															@Valid @RequestBody CharacterSuggestion suggestion) {
 		
-		return this.gameService.suggestCharacter(id, player, suggestion)
-				.map(ResponseEntity::ok)
-				.orElseGet(() -> ResponseEntity.badRequest().build());
+		this.gameService.suggestCharacter(id, player, suggestion);
+		return "Character has been added";
 	}
 
 	@GetMapping("/games/{id}/turn")
@@ -95,9 +94,9 @@ public class GameController {
 
 	@PostMapping("/games/{id}/questions")
 	public void askQuestion(@PathVariable("id") String id,
-							@RequestHeader(PLAYER) String player, @RequestBody Message message) {
+							@RequestHeader(PLAYER) String player, @Valid @RequestBody Message message) {
 		
-		this.gameService.askQuestion(id, player, message.getMessage());
+		this.gameService.askQuestion(id, player, message);
 	}
 
 	@PostMapping("/games/{id}/guess")

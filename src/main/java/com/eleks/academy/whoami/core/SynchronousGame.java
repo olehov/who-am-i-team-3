@@ -5,11 +5,13 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.eleks.academy.whoami.core.state.GameState;
+import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.response.BasePlayerModel;
+import com.eleks.academy.whoami.model.response.PlayerWithState;
 
 public interface SynchronousGame {
 
-	Optional<SynchronousPlayer> findPlayer(String player);
+	Optional<PlayerWithState> findPlayer(String player);
 
 	String getId();
 
@@ -21,13 +23,17 @@ public interface SynchronousGame {
 
 	boolean isAvailable();
 
+	void suggestCharacter(String player, CharacterSuggestion suggestion);
+
 	SynchronousGame start();
+
+	void askQuestion(String player, String question);
 
 	Optional<SynchronousPlayer> deletePlayerFromGame(String player);
 
-	List<BasePlayerModel> getPlayersList();
+	List<PlayerWithState> getPlayersList();
 
-	List<SynchronousPlayer> getPlayersListInGame();
+	List<PlayerWithState> getPlayersListInGame();
 
 	GameState getState();
 
@@ -35,4 +41,4 @@ public interface SynchronousGame {
 
 	void setState(GameState state);
 
-}
+	}

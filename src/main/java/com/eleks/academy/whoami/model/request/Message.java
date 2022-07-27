@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 @Data
 @NoArgsConstructor
@@ -12,6 +13,7 @@ import javax.validation.constraints.NotBlank;
 public class Message {
 
 	@NotBlank
+	@Size(min = 2, max = 256, message = "message must be between 2 and 256 characters long")
 	private String message;
 
 }

@@ -16,7 +16,7 @@ public class PlayerWithState {
 
     private SynchronousPlayer player;
 
-    private CharacterSuggestion characterSuggestion;
+    private QuestionAnswer answer;
 
     private PlayerState state;
 

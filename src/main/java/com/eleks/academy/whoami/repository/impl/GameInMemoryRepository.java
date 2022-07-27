@@ -7,8 +7,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.eleks.academy.whoami.core.impl.PersistentPlayer;
-import com.eleks.academy.whoami.model.response.HomePageInfo;
 import org.springframework.stereotype.Repository;
 
 import com.eleks.academy.whoami.core.SynchronousGame;
@@ -69,6 +67,7 @@ public class GameInMemoryRepository implements GameRepository {
 	@Override
 	public void deletePlayerByHeader(String player) {
 		this.playersInGame.remove(player);
+		this.allPlayers.remove(player);
 	}
 
 	@Override
@@ -87,7 +86,7 @@ public class GameInMemoryRepository implements GameRepository {
 		try {
 			return CompletableFuture.completedFuture(this.playersInGame.get(player));
 		}catch (NullPointerException e){
-			return null;
+			return CompletableFuture.completedFuture(null);
 		}
 	}
 
@@ -98,38 +97,41 @@ public class GameInMemoryRepository implements GameRepository {
 
 	@Override
 	public void checkPlayerStatus(String player) {
-//		this.allPlayers.stream().forEach(p ->
-//				{
-//					String player2 = null;
-//					try {
-//						player2 = getPlayer(p).get(DURATION, UNIT);
-//					} catch (InterruptedException e) {
-////				e.printStackTrace();
-//					} catch (ExecutionException e) {
-////				e.printStackTrace();
-//					} catch (TimeoutException e) {
-//						System.out.println("time out");
-////				e.printStackTrace();
-//					}
-//					if (player2 == null) {
-//						playersInGame.remove(p);
+//		String tempPlayer = null;
+//		for (String p : allPlayers.keySet()) {
+//			try {
+//				for (String p2 : this.playersInGame.keySet()) {
+//					if (p.equals(p2)) {
+//						tempPlayer = p;
 //					}
 //				}
-//		);
-
-//		for(var player1:allPlayers){
-//			if(!player1.equals(playersInGame.get(player1)) && player1.equals(player)){
-//				allPlayers.remove(player);
+//			} catch (NullPointerException e) {
+//				System.out.println("ERROR 404");
+//				//this.allPlayers.remove(p);
 //			}
+//			this.allPlayers.remove(p);
 //		}
 
-		try {
-			if(getPlayer(player).get(DURATION,UNIT).isEmpty()){
-				this.allPlayers.remove(player);
-			}
-		} catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
-			allPlayers.remove(player);
-		}
+//		try {
+//			String p2 = getPlayer(player).get(DURATION,UNIT);
+//			if(!allPlayers.get(player).equals(p2)){
+//				this.allPlayers.remove(player);
+//			}
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		} catch (ExecutionException e) {
+//			e.printStackTrace();
+//		} catch (TimeoutException e) {
+//			e.printStackTrace();
+//		}
+//
+//		try {
+//			if (tempPlayer == null) {
+//				allPlayers.remove(player);
+//			}
+//		}catch (NullPointerException e){
+//			System.out.println("ERROR 404");
+//		}
 	}
 
 	@Override
@@ -142,8 +144,7 @@ public class GameInMemoryRepository implements GameRepository {
 
 	@Override
 	public void savePlayersOnline(String player) {
-		allPlayers.put(player, player);
-		//checkPlayerStatus(player);
+		this.allPlayers.put(player, player);
 	}
 
 	@Override

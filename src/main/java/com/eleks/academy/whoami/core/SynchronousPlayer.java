@@ -10,6 +10,8 @@ public interface SynchronousPlayer {
 	
 	void suggest(CharacterSuggestion suggestion);
 
+	void setNickName(String nickName);
+
 	boolean isSuggest();
 
 	String getNickName();

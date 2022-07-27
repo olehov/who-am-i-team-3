@@ -2,15 +2,7 @@ package com.eleks.academy.whoami.core.state;
 
 import static java.util.stream.Collectors.toList;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -18,8 +10,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.eleks.academy.whoami.core.exception.PlayerNotFoundException;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
+import com.eleks.academy.whoami.model.request.CharacterSuggestion;
+import com.eleks.academy.whoami.model.response.PlayerState;
+import com.eleks.academy.whoami.model.response.PlayerWithState;
 
 import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.core.exception.GameException;
@@ -27,14 +20,17 @@ import com.eleks.academy.whoami.core.impl.GameCharacter;
 
 public final class SuggestingCharacters implements GameState {
 
-	private final Map<String, SynchronousPlayer> players;
+	private final Map<String, PlayerWithState> players;
 
 	private final Map<String, List<GameCharacter>> suggestedCharacters;
 
+	private final Map<String, GameCharacter> suggestions;
+
 	private final Map<String, String> playerCharacterMap;
 
-	public SuggestingCharacters(Map<String, SynchronousPlayer> players) {
+	public SuggestingCharacters(Map<String, PlayerWithState> players) {
 		this.players = players;
+		this.suggestions = new HashMap<>(this.players.size());
 		this.suggestedCharacters = new HashMap<>(this.players.size());
 		this.playerCharacterMap = new ConcurrentHashMap<>(this.players.size());
 	}
@@ -65,7 +61,10 @@ public final class SuggestingCharacters implements GameState {
 	}
 
 	@Override
-	public Stream<SynchronousPlayer> getPlayersList() {
+	public Stream<PlayerWithState> getPlayersList() {
+		List<SynchronousPlayer> synchronousPlayerList = new LinkedList<>();
+		players.values().forEach(p->synchronousPlayerList.add(p.getPlayer()));
+		//return synchronousPlayerList.stream();
 		return this.players.values().stream();
 	}
 
@@ -79,7 +78,8 @@ public final class SuggestingCharacters implements GameState {
 		if (this.players
 				.values()
 				.stream()
-				.filter(SynchronousPlayer::isSuggest)
+				.map(PlayerWithState::getState)
+				.filter(state -> state.equals(PlayerState.READY))
 				.count() == this.players.size() && this.getCurrentState() instanceof SuggestingCharacters) {
 
 			return true;
@@ -88,7 +88,7 @@ public final class SuggestingCharacters implements GameState {
 	}
 
 	@Override
-	public Optional<SynchronousPlayer> findPlayer(String player) {
+	public Optional<PlayerWithState> findPlayer(String player) {
 		return Optional.ofNullable(this.players.get(player));
 	}
 
@@ -96,7 +96,7 @@ public final class SuggestingCharacters implements GameState {
 	public Optional<SynchronousPlayer> remove(String player) {
 		// TODO Auto-generated method stub
 		if (findPlayer(player).isPresent()) {
-			return Optional.ofNullable(this.players.remove(player));
+			return Optional.ofNullable(this.players.remove(player).getPlayer());
 		} else {
 			throw new PlayerNotFoundException("[" + player + "] not found.");
 		}
@@ -109,11 +109,11 @@ public final class SuggestingCharacters implements GameState {
 
 		int i = 0;
 		while (i < 3) {
-			this.players.get(authors.get(i)).setGameCharacter(this.players.get(authors.get(i+1)).getCharacterSuggestion());
+			this.players.get(authors.get(i)).getPlayer().setGameCharacter(this.players.get(authors.get(i+1)).getPlayer().getCharacterSuggestion());
 			i++;
 		}
 
-		this.players.get(authors.get(3)).setGameCharacter(this.players.get(authors.get(0)).getCharacterSuggestion());
+		this.players.get(authors.get(3)).getPlayer().setGameCharacter(this.players.get(authors.get(0)).getPlayer().getCharacterSuggestion());
 
 		if (!isAllPlayersAssigned()) {
 			throw new GameException("isAllPlayersAssigned = FALSE");
@@ -125,7 +125,8 @@ public final class SuggestingCharacters implements GameState {
 		return this.players
 				.values()
 				.stream()
-				.filter(SynchronousPlayer::isCharacterAssigned)
+				.map(PlayerWithState::getPlayer)
+				.map(player -> player.getGameCharacter() != null)
 				.count() == this.players.size();
 	}
 
@@ -188,7 +189,7 @@ public final class SuggestingCharacters implements GameState {
 
 					character.markTaken();
 
-					this.players.get(player).setGameCharacter(character.getCharacter());
+					this.players.get(player).getPlayer().setGameCharacter(character.getCharacter());
 
 					this.playerCharacterMap.put(player, character.getCharacter());
 
@@ -218,4 +219,17 @@ public final class SuggestingCharacters implements GameState {
 					.orElseGet(() -> list.get(0));
 		};
 	}
+
+    public void suggestCharacter(String player, CharacterSuggestion suggestion) {
+		if (this.players.get(player).getState().equals(PlayerState.NOT_READY)) {
+			var currentPlayer = this.players.get(player);
+
+			this.suggestions.put(player, GameCharacter.of(suggestion.getCharacter(), suggestion.getNickname()));
+
+			currentPlayer.getPlayer().setNickName(suggestion.getNickname());
+			currentPlayer.setState(PlayerState.READY);
+		} else {
+			throw new GameException("[" + player + "] already submit his suggestion.");
+		}
+    }
 }

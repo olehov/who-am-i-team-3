@@ -4,6 +4,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import com.eleks.academy.whoami.core.SynchronousPlayer;
+import com.eleks.academy.whoami.model.response.PlayerWithState;
 
 public interface GameState {
 
@@ -44,7 +45,7 @@ public interface GameState {
 	 *
 	 * @return values of players map
 	 */
-	Stream<SynchronousPlayer> getPlayersList();
+	Stream<PlayerWithState> getPlayersList();
 
 	/**
 	 * Used for presentation purposes only
@@ -56,7 +57,7 @@ public interface GameState {
 	/* @return player
 	 * @throw ResponseStatusException(404) -> PlayerNotFoundException
 	 */
-	Optional<SynchronousPlayer> findPlayer(String player);
+	Optional<PlayerWithState> findPlayer(String player);
 
 	/* @return player that was removed from game
 	 * @throw ResponseStatusException(404) -> PlayerNotFoundException
