@@ -16,6 +16,7 @@ import com.eleks.academy.whoami.core.state.SuggestingCharacters;
 import com.eleks.academy.whoami.core.state.WaitingForPlayers;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.response.BasePlayerModel;
+import com.eleks.academy.whoami.model.response.PlayerState;
 import com.eleks.academy.whoami.model.response.PlayerWithState;
 
 public class PersistentGame implements SynchronousGame {
@@ -186,6 +187,7 @@ public class PersistentGame implements SynchronousGame {
 	@Override
 	public SynchronousGame start() {
 		//this.currentState.peek().next();
+		this.currentState.peek().getPlayersList().forEach(p->p.setState(PlayerState.READY));
 		this.currentState.add(currentState.peek().next());
 //		if(!isAvailable()) {
 //			return this;
