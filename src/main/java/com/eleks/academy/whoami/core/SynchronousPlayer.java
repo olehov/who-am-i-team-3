@@ -14,6 +14,8 @@ public interface SynchronousPlayer {
 
 	boolean isSuggest();
 
+	void setSuggested(boolean suggested);
+
 	String getNickName();
 
 	String getGameCharacter();

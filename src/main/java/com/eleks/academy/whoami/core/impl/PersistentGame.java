@@ -152,6 +152,7 @@ public class PersistentGame implements SynchronousGame {
 
 			assert currentState.peek() != null;
 			((SuggestingCharacters) currentState.peek()).suggestCharacter(player, suggestion);
+			this.currentState.peek().findPlayer(player).get().getPlayer().setSuggested(true);
 
 			assert currentState.peek() != null;
 			if (currentState.peek().isReadyToNextState()) {

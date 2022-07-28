@@ -29,6 +29,11 @@ public class PersistentPlayer implements SynchronousPlayer {
 	public boolean isSuggest() {
 		return isSuggested;
 	}
+
+	@Override
+	public void setSuggested(boolean suggested){
+		this.isSuggested = suggested;
+	}
 	
 	@Override
 	public boolean isCharacterAssigned() {

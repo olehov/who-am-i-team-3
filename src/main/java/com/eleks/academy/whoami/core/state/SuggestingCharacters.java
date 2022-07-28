@@ -84,7 +84,8 @@ public final class SuggestingCharacters implements GameState {
 
 			return true;
 		} else
-			throw new GameException("Game not ready to start");
+			return false;
+			//throw new GameException("Game not ready to start");
 	}
 
 	@Override
