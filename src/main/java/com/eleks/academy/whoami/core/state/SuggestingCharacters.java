@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.eleks.academy.whoami.core.exception.PlayerNotFoundException;
+import com.eleks.academy.whoami.core.impl.PersistentPlayer;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.response.PlayerState;
 import com.eleks.academy.whoami.model.response.PlayerWithState;
@@ -226,7 +227,7 @@ public final class SuggestingCharacters implements GameState {
 			var currentPlayer = this.players.get(player);
 
 			this.suggestions.put(player, GameCharacter.of(suggestion.getCharacter(), suggestion.getNickname()));
-
+			((PersistentPlayer) currentPlayer.getPlayer()).setCharacter(suggestion.getCharacter());
 			currentPlayer.getPlayer().setNickName(suggestion.getNickname());
 			currentPlayer.setState(PlayerState.READY);
 		} else {

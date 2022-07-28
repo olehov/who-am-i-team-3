@@ -1,6 +1,7 @@
 package com.eleks.academy.whoami.controller;
 
 import com.eleks.academy.whoami.core.SynchronousPlayer;
+import com.eleks.academy.whoami.model.chat.ChatAsk;
 import com.eleks.academy.whoami.model.chat.ChatHistory;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.Message;
@@ -152,9 +153,7 @@ public class GameController {
 	}
 
 	@GetMapping("/games/{id}/chat-history")
-	public ResponseEntity<ChatHistory> viewHistory(@PathVariable("id") String id, @RequestHeader(PLAYER) String player){
-		return this.gameService.viewHistory(id, player)
-				.map(ResponseEntity::ok)
-				.orElseGet(()->ResponseEntity.notFound().build());
+	public List<ChatAsk> viewHistory(@PathVariable("id") String id, @RequestHeader(PLAYER) String player){
+		return this.gameService.viewHistory(id, player);
 	}
 }

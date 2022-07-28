@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import com.eleks.academy.whoami.core.state.ProcessingQuestion;
 import com.eleks.academy.whoami.core.state.WaitingForPlayers;
-import com.eleks.academy.whoami.model.chat.ChatHistory;
+import com.eleks.academy.whoami.model.chat.ChatAsk;
 import com.eleks.academy.whoami.model.request.Message;
 import com.eleks.academy.whoami.model.response.*;
 import org.springframework.http.HttpStatus;
@@ -62,8 +62,8 @@ public class GameServiceImpl implements GameService {
 	}
 
 	@Override
-	public Optional<ChatHistory> viewHistory(String id, String player) {
-		return Optional.of(this.gameRepository.findById(id).get().viewHistory());
+	public List<ChatAsk> viewHistory(String id, String player) {
+		return this.gameRepository.findById(id).get().viewHistory();
 	}
 
 	/*
@@ -97,7 +97,7 @@ public class GameServiceImpl implements GameService {
 	@Override
 	public Optional<StartGameModel> startGame(String id, String player) {
 		return this.gameRepository.findById(id)
-				.filter(g -> g.getState().isReadyToNextState() && g.getState() instanceof SuggestingCharacters)
+				.filter(g -> g.getState() instanceof ProcessingQuestion)
 				.map(SynchronousGame::start)
 				.map(StartGameModel::of);
 	}

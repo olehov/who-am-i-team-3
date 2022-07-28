@@ -45,7 +45,7 @@ public class PersistentPlayer implements SynchronousPlayer {
 		this.characterSuggestion.setNickname(nickname);
 	}
 
-	private void setCharacter(String character) {
+	public void setCharacter(String character) {
 		this.characterSuggestion.setCharacter(character);
 	}
 	

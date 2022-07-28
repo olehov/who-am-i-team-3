@@ -7,16 +7,14 @@ import java.util.function.Function;
 
 import com.eleks.academy.whoami.core.SynchronousGame;
 import com.eleks.academy.whoami.core.SynchronousPlayer;
-import com.eleks.academy.whoami.core.exception.GameException;
 import com.eleks.academy.whoami.core.exception.GameNotFoundException;
 import com.eleks.academy.whoami.core.exception.PlayerNotFoundException;
 import com.eleks.academy.whoami.core.state.GameState;
 import com.eleks.academy.whoami.core.state.ProcessingQuestion;
 import com.eleks.academy.whoami.core.state.SuggestingCharacters;
 import com.eleks.academy.whoami.core.state.WaitingForPlayers;
-import com.eleks.academy.whoami.model.chat.ChatHistory;
+import com.eleks.academy.whoami.model.chat.ChatAsk;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
-import com.eleks.academy.whoami.model.response.BasePlayerModel;
 import com.eleks.academy.whoami.model.response.PlayerState;
 import com.eleks.academy.whoami.model.response.PlayerWithState;
 
@@ -172,9 +170,9 @@ public class PersistentGame implements SynchronousGame {
 		//this.currentState.peek().next();
 		this.currentState.add(currentState.peek().next());
 		for(int i = 0; i<this.currentState.peek().getPlayersInGame(); i++) {
-			if(i==0) {
+			if (i == 0) {
 				this.currentState.peek().getPlayersList().toList().get(i).setState(PlayerState.ASKING);
-			}else {
+			} else {
 				this.currentState.peek().getPlayersList().toList().get(i).setState(PlayerState.ANSWERING);
 			}
 		}
@@ -185,7 +183,7 @@ public class PersistentGame implements SynchronousGame {
 	}
 
 	@Override
-	public ChatHistory viewHistory() {
+	public List<ChatAsk> viewHistory() {
 		return ((ProcessingQuestion) this.currentState.peek()).viewHistory();
 	}
 

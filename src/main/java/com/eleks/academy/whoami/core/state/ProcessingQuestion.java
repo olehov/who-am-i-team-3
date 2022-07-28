@@ -3,6 +3,7 @@ package com.eleks.academy.whoami.core.state;
 import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.core.exception.GameException;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,6 +11,7 @@ import java.util.stream.Stream;
 
 import com.eleks.academy.whoami.core.exception.PlayerNotFoundException;
 import com.eleks.academy.whoami.core.impl.StartGameAnswer;
+import com.eleks.academy.whoami.model.chat.ChatAsk;
 import com.eleks.academy.whoami.model.chat.ChatHistory;
 import com.eleks.academy.whoami.model.request.QuestionAnswer;
 import com.eleks.academy.whoami.model.response.PlayerState;
@@ -38,6 +40,14 @@ public final class ProcessingQuestion implements GameState {
 				.stream()
 				.findAny()
 				.orElse(null);
+
+		for (int i = 0; i < this.players.size(); i++) {
+			if(i==0){
+				this.players.values().stream().toList().get(i).setState(PlayerState.ASKING);
+			}else{
+				this.players.values().stream().toList().get(i).setState(PlayerState.ANSWERING);
+			}
+		}
 	}
 
 	@Override
@@ -93,7 +103,7 @@ public final class ProcessingQuestion implements GameState {
 	}
 
 	public void askQuestion(String player, String question) {
-		PlayerWithState playerWithState = players.get(currentPlayer);
+		PlayerWithState playerWithState = players.get(player);
 		if (playerWithState.getState().equals(PlayerState.ASKING)) {
 			this.chatHistory.addQuestion(player, QUESTION, question);
 		}else {
@@ -102,8 +112,8 @@ public final class ProcessingQuestion implements GameState {
 	}
 
 	public void answerQuestion(String player, String answer){
-		PlayerWithState playerWithState = players.get(currentPlayer);
-		if (playerWithState.getState().equals(PlayerState.ASKING)) {
+		PlayerWithState playerWithState = players.get(player);
+		if (playerWithState.getState().equals(PlayerState.ANSWERING)) {
 			switch(answer) {
 				case "YES":
 					this.chatHistory.addAnswer(player, QuestionAnswer.YES);
@@ -120,11 +130,11 @@ public final class ProcessingQuestion implements GameState {
 
 			//this.chatHistory.addAnswer(player, answer);
 		}else {
-			throw new GameException("Player " + player + " doesn't ask question in this turn");
+			throw new GameException("Player " + player + " doesn't answer question in this turn but his ask this question");
 		}
 	}
 
-	public ChatHistory viewHistory(){
-		return this.chatHistory;
+	public List<ChatAsk> viewHistory(){
+		return this.chatHistory.getAskHistory();
 	}
 }

@@ -5,13 +5,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 @Getter
 @NoArgsConstructor
 public class ChatHistory {
-    private final List<ChatAsk> askHistory = new LinkedList<>();
+    private final List<ChatAsk> askHistory = new ArrayList<>();
 
     @Setter
     private ChatAsk currentQuestion;

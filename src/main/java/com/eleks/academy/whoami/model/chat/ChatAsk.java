@@ -2,11 +2,13 @@ package com.eleks.academy.whoami.model.chat;
 
 import com.eleks.academy.whoami.model.request.QuestionAnswer;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.LinkedList;
 import java.util.List;
 
+@Getter
 @NoArgsConstructor
 public class ChatAsk {
 

@@ -1,11 +1,10 @@
 package com.eleks.academy.whoami.service;
 
-import java.lang.reflect.Member;
 import java.util.List;
 import java.util.Optional;
 
 import com.eleks.academy.whoami.core.SynchronousPlayer;
-import com.eleks.academy.whoami.model.chat.ChatHistory;
+import com.eleks.academy.whoami.model.chat.ChatAsk;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.Message;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
@@ -51,6 +50,6 @@ public interface GameService {
 
 	void checkPlayerStatus(String player);
 
-	Optional<ChatHistory> viewHistory(String id, String player);
+	List<ChatAsk> viewHistory(String id, String player);
 	
 }
