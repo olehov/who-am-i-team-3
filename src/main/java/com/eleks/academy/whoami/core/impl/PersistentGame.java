@@ -14,6 +14,7 @@ import com.eleks.academy.whoami.core.state.GameState;
 import com.eleks.academy.whoami.core.state.ProcessingQuestion;
 import com.eleks.academy.whoami.core.state.SuggestingCharacters;
 import com.eleks.academy.whoami.core.state.WaitingForPlayers;
+import com.eleks.academy.whoami.model.chat.ChatHistory;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.response.BasePlayerModel;
 import com.eleks.academy.whoami.model.response.PlayerState;
@@ -109,26 +110,6 @@ public class PersistentGame implements SynchronousGame {
 		return this.applyIfPresent(this.currentState.peek(), gameState -> gameState.findPlayer(player));
 	}
 
-//	@Override
-//	public SynchronousPlayer enrollToGame(String player) {
-//		if (this.getState() instanceof WaitingForPlayers) {
-//
-//			var newPlayer = new PersistentPlayer(player, generateNickname());
-//
-//			assert currentState.peek() != null;
-//			((WaitingForPlayers) currentState.peek()).add(newPlayer);
-//
-//			assert currentState.peek() != null;
-//			if (String.valueOf(this.getPlayersList().size()).equals("4")) {
-//				this.currentState.add(Objects.requireNonNull(this.currentState.peek()).next());
-//				this.currentState.poll();
-//			}
-//			return newPlayer;
-//		} else
-//			throw new GameNotFoundException("Game [" + this.getId() + "] already at "
-//					+ this.getState().getClass().getSimpleName() + " state.");
-//	}
-
 	@Override
 	public SynchronousPlayer enrollToGame(String player) {
 
@@ -153,6 +134,7 @@ public class PersistentGame implements SynchronousGame {
 			assert currentState.peek() != null;
 			((SuggestingCharacters) currentState.peek()).suggestCharacter(player, suggestion);
 			this.currentState.peek().findPlayer(player).get().getPlayer().setSuggested(true);
+			this.currentState.peek().findPlayer(player).get().setState(PlayerState.READY);
 
 			assert currentState.peek() != null;
 			if (currentState.peek().isReadyToNextState()) {
@@ -188,12 +170,28 @@ public class PersistentGame implements SynchronousGame {
 	@Override
 	public SynchronousGame start() {
 		//this.currentState.peek().next();
-		this.currentState.peek().getPlayersList().forEach(p->p.setState(PlayerState.READY));
 		this.currentState.add(currentState.peek().next());
+		for(int i = 0; i<this.currentState.peek().getPlayersInGame(); i++) {
+			if(i==0) {
+				this.currentState.peek().getPlayersList().toList().get(i).setState(PlayerState.ASKING);
+			}else {
+				this.currentState.peek().getPlayersList().toList().get(i).setState(PlayerState.ANSWERING);
+			}
+		}
 //		if(!isAvailable()) {
 //			return this;
 //		}else throw new GameException("Game not ready to start");
 		return this;
+	}
+
+	@Override
+	public ChatHistory viewHistory() {
+		return ((ProcessingQuestion) this.currentState.peek()).viewHistory();
+	}
+
+	@Override
+	public void answerQuestion(String player, String answer) {
+		((ProcessingQuestion) this.currentState.peek()).answerQuestion(player, answer);
 	}
 
 	@Override

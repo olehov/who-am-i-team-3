@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import com.eleks.academy.whoami.core.state.ProcessingQuestion;
 import com.eleks.academy.whoami.core.state.WaitingForPlayers;
+import com.eleks.academy.whoami.model.chat.ChatHistory;
 import com.eleks.academy.whoami.model.request.Message;
 import com.eleks.academy.whoami.model.response.*;
 import org.springframework.http.HttpStatus;
@@ -60,6 +61,11 @@ public class GameServiceImpl implements GameService {
 				.map(GameDetails::of);
 	}
 
+	@Override
+	public Optional<ChatHistory> viewHistory(String id, String player) {
+		return Optional.of(this.gameRepository.findById(id).get().viewHistory());
+	}
+
 	/*
 	 *TODO: check gameState
 	 */
@@ -80,6 +86,8 @@ public class GameServiceImpl implements GameService {
 			throw new GameNotFoundException("SUGGESTING-CHARACTERS: Game with id[" + id + "] not found.");
 
 		}
+
+
 
 		//SynchronousPlayer inGamePlayer = gameRepository.findById(id).flatMap(game -> game.findPlayer(player)).get();
 		//return Optional.of(inGamePlayer);
@@ -118,7 +126,7 @@ public class GameServiceImpl implements GameService {
 
 	@Override
 	public void answerQuestion(String id, String player, String answer) {
-		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
+		this.gameRepository.findById(id).get().answerQuestion(player, answer);
 	}
 
 	@Override

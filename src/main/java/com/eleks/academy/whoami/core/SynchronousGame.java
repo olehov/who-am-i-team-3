@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.eleks.academy.whoami.core.state.GameState;
+import com.eleks.academy.whoami.model.chat.ChatHistory;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.response.BasePlayerModel;
 import com.eleks.academy.whoami.model.response.PlayerWithState;
@@ -37,8 +38,11 @@ public interface SynchronousGame {
 
 	GameState getState();
 
+	ChatHistory viewHistory();
+
 	Map<String, String> getMap();
 
 	void setState(GameState state);
 
-	}
+	void answerQuestion(String player, String answer);
+}

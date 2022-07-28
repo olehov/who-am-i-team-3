@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 import com.eleks.academy.whoami.core.exception.PlayerNotFoundException;
 import com.eleks.academy.whoami.core.impl.StartGameAnswer;
 import com.eleks.academy.whoami.model.chat.ChatHistory;
+import com.eleks.academy.whoami.model.request.QuestionAnswer;
 import com.eleks.academy.whoami.model.response.PlayerState;
 import com.eleks.academy.whoami.model.response.PlayerWithState;
 
@@ -94,11 +95,36 @@ public final class ProcessingQuestion implements GameState {
 	public void askQuestion(String player, String question) {
 		PlayerWithState playerWithState = players.get(currentPlayer);
 		if (playerWithState.getState().equals(PlayerState.ASKING)) {
-			StartGameAnswer gameAnswer = new StartGameAnswer(player);
-			gameAnswer.setMessage(question);
 			this.chatHistory.addQuestion(player, QUESTION, question);
 		}else {
 			throw new GameException("Player " + player + " doesn't ask question in this turn");
 		}
+	}
+
+	public void answerQuestion(String player, String answer){
+		PlayerWithState playerWithState = players.get(currentPlayer);
+		if (playerWithState.getState().equals(PlayerState.ASKING)) {
+			switch(answer) {
+				case "YES":
+					this.chatHistory.addAnswer(player, QuestionAnswer.YES);
+					break;
+				case "NO":
+					this.chatHistory.addAnswer(player, QuestionAnswer.NO);
+					break;
+				case "NOT_SURE":
+					this.chatHistory.addAnswer(player, QuestionAnswer.NOT_SURE);
+					break;
+				default:
+					throw new GameException("Answer is not accepted");
+			}
+
+			//this.chatHistory.addAnswer(player, answer);
+		}else {
+			throw new GameException("Player " + player + " doesn't ask question in this turn");
+		}
+	}
+
+	public ChatHistory viewHistory(){
+		return this.chatHistory;
 	}
 }
