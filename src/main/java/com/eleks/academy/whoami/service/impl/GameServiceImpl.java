@@ -9,6 +9,7 @@ import com.eleks.academy.whoami.core.impl.PersistentPlayer;
 import com.eleks.academy.whoami.core.state.ProcessingQuestion;
 import com.eleks.academy.whoami.core.state.WaitingForPlayers;
 import com.eleks.academy.whoami.model.request.Question;
+import com.eleks.academy.whoami.model.request.QuestionAnswer;
 import com.eleks.academy.whoami.model.response.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -109,7 +110,12 @@ public class GameServiceImpl implements GameService {
 
 	@Override
 	public Optional<TurnDetails> findTurnInfo(String id, String player) {
-		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
+		Optional<SynchronousGame> game = this.gameRepository.findById(id);
+		if (game.isPresent() && (game.get().getState() instanceof ProcessingQuestion)) {
+			return ((ProcessingQuestion) game.get().getState()).findTurnInfo();
+		} else {
+			throw new GameNotFoundException("Game with id:" + id + " not found");
+		}
 	}
 
 	@Override
@@ -118,7 +124,17 @@ public class GameServiceImpl implements GameService {
 	}
 
 	@Override
-	public void answerQuestion(String id, String player, String answer) {
+	public void answerQuestion(String id, String player, QuestionAnswer answer) {
+		Optional<SynchronousGame> game = this.gameRepository.findById(id);
+		if (game.isPresent() && (game.get().getState() instanceof ProcessingQuestion)){
+			if (game.get().findPlayerInGame(player)) {
+				((ProcessingQuestion) game.get().getState()).answerQuestion(game.get().findPlayer(player).get(),answer);
+			}else {
+				throw new PlayerNotFoundException("Player [" + player + "] not found");
+			}
+		}else {
+			throw new GameNotFoundException("Game with id:" + id + " not found");
+		}
 		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
 

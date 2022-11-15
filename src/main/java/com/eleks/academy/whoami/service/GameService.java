@@ -7,6 +7,7 @@ import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
 import com.eleks.academy.whoami.model.request.Question;
+import com.eleks.academy.whoami.model.request.QuestionAnswer;
 import com.eleks.academy.whoami.model.response.*;
 
 public interface GameService {
@@ -29,7 +30,7 @@ public interface GameService {
 
 	void submitGuess(String id, String player, String guess);
 
-	void answerQuestion(String id, String player, String answer);
+	void answerQuestion(String id, String player, QuestionAnswer answer);
 
 	Optional<QuickGame> findQuickGame(String player);
 

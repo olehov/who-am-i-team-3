@@ -98,9 +98,9 @@ public class GameController {
 
 	@PostMapping("/{id}/answer")
 	public void answerQuestion(@PathVariable("id") String id,
-							   @RequestHeader(PLAYER) String player, @RequestBody Message message) {
+							   @RequestHeader(PLAYER) String player, @RequestBody QuestionAnswer answer) {
 		
-		this.gameService.answerQuestion(id, player, message.getMessage());
+		this.gameService.answerQuestion(id, player, answer);
 
 	}
 	
