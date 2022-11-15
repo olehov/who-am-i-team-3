@@ -1,6 +1,7 @@
 package com.eleks.academy.whoami.core;
 
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
+import com.eleks.academy.whoami.model.response.PlayerState;
 
 public interface SynchronousPlayer {
 
@@ -15,6 +16,10 @@ public interface SynchronousPlayer {
 	String getNickName();
 
 	String getGameCharacter();
+
+    String getPlayerState();
+
+	void setPlayerState(PlayerState playerState);
 
 	void setGameCharacter(String gameCharacter);
 

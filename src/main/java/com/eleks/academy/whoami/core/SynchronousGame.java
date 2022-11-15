@@ -11,6 +11,8 @@ public interface SynchronousGame {
 
 	Optional<SynchronousPlayer> findPlayer(String player);
 
+	Boolean findPlayerInGame(String player);
+
 	String getId();
 
 	SynchronousPlayer enrollToGame(String player);

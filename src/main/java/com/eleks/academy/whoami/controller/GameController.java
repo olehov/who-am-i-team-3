@@ -1,9 +1,7 @@
 package com.eleks.academy.whoami.controller;
 
 import com.eleks.academy.whoami.core.SynchronousPlayer;
-import com.eleks.academy.whoami.model.request.CharacterSuggestion;
-import com.eleks.academy.whoami.model.request.Message;
-import com.eleks.academy.whoami.model.request.NewGameRequest;
+import com.eleks.academy.whoami.model.request.*;
 import com.eleks.academy.whoami.model.response.*;
 import com.eleks.academy.whoami.service.GameService;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +36,8 @@ public class GameController {
 	public GameDetails createGame(@RequestHeader(PLAYER) String player,
 								  @Valid @RequestBody NewGameRequest gameRequest) {
 		
-		return this.gameService.createGame(player, gameRequest);
+		/*return this.gameService.createGame(player, gameRequest);*/
+		return this.gameService.createGame(player,gameRequest);
 	}
 
 	@GetMapping("/{id}")
@@ -85,9 +84,9 @@ public class GameController {
 
 	@PostMapping("/{id}/questions")
 	public void askQuestion(@PathVariable("id") String id,
-							@RequestHeader(PLAYER) String player, @RequestBody Message message) {
+							@RequestHeader(PLAYER) String player, @RequestBody Question question) {
 		
-		this.gameService.askQuestion(id, player, message.getMessage());
+		this.gameService.askQuestion(id, player, question);
 	}
 
 	@PostMapping("/{id}/guess")

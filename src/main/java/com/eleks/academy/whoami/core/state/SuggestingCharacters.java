@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.eleks.academy.whoami.core.exception.PlayerNotFoundException;
+import com.eleks.academy.whoami.model.response.PlayerState;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -37,6 +38,9 @@ public final class SuggestingCharacters implements GameState {
 		this.players = players;
 		this.suggestedCharacters = new HashMap<>(this.players.size());
 		this.playerCharacterMap = new ConcurrentHashMap<>(this.players.size());
+		for(var player:players.values()){
+			player.setPlayerState(PlayerState.CHARACTER_SUGGESTION);
+		}
 	}
 
 	/**
@@ -94,13 +98,11 @@ public final class SuggestingCharacters implements GameState {
 
 	@Override
 	public Optional<SynchronousPlayer> remove(String player) {
-		// TODO Auto-generated method stub
 		if (findPlayer(player).isPresent()) {
 			return Optional.ofNullable(this.players.remove(player));
 		} else {
 			throw new PlayerNotFoundException("[" + player + "] not found.");
 		}
-		//throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 	}
 
 	private GameState assign() {
@@ -118,6 +120,13 @@ public final class SuggestingCharacters implements GameState {
 		if (!isAllPlayersAssigned()) {
 			throw new GameException("isAllPlayersAssigned = FALSE");
 		}
+
+		this.players.values().stream().toList().get(0).setPlayerState(PlayerState.ASKING);
+
+		for(i = 1; i < this.players.size(); i++){
+			this.players.values().stream().toList().get(i).setPlayerState(PlayerState.ANSWERING);
+		}
+
 		return this;
 	}
 
@@ -138,6 +147,12 @@ public final class SuggestingCharacters implements GameState {
 			this.suggestedCharacters.put(player.getUserName(), newCharacters);
 
 			characters = newCharacters;
+		}
+
+		for(var player1:players.values()){
+			if(player1.equals(player)){
+				player1.setPlayerState(PlayerState.READY);
+			}
 		}
 
 		characters.add(GameCharacter.of(player.getCharacterSuggestion(), player.getUserName()));

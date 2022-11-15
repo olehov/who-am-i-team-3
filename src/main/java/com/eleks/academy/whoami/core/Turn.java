@@ -1,13 +1,18 @@
 package com.eleks.academy.whoami.core;
 
+import com.eleks.academy.whoami.model.request.Question;
+import com.eleks.academy.whoami.model.request.QuestionAnswer;
+import com.eleks.academy.whoami.model.response.PlayerWithState;
+import com.eleks.academy.whoami.model.response.TurnDetails;
+
 import java.util.List;
 
 public interface Turn {
 	
-	Player getGuesser();
-	
-	List<Player> getOtherPlayers();
+	SynchronousPlayer getAsker();
 
-	void changeTurn();
+	Question getQuestion();
+
+	List<PlayerWithState> getAnswers();
 
 }

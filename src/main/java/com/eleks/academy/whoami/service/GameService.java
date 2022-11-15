@@ -6,6 +6,7 @@ import java.util.Optional;
 import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
+import com.eleks.academy.whoami.model.request.Question;
 import com.eleks.academy.whoami.model.response.*;
 
 public interface GameService {
@@ -22,7 +23,7 @@ public interface GameService {
 
 	Optional<StartGameModel> startGame(String id, String player);
 
-	void askQuestion(String gameId, String player, String message);
+	void askQuestion(String id, String player, Question question);
 
 	Optional<TurnDetails> findTurnInfo(String id, String player);
 
