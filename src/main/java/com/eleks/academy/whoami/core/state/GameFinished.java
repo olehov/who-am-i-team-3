@@ -9,11 +9,9 @@ public final class GameFinished implements GameState {
 
 	private final int playersInGame;
 
-	private final int maxPlayers;
 
-	public GameFinished(int playersInGame, int maxPlayers) {
+	public GameFinished(int playersInGame) {
 		this.playersInGame = playersInGame;
-		this.maxPlayers = maxPlayers;
 	}
 
 	@Override

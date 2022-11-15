@@ -4,7 +4,7 @@ info:
   title: Who am I?
   description: Rest Api description
 servers:
-  - url: http://localhost:8090/api/v1	  
+  - url: http://localhost:8080/api/v1
 paths:
   /games:
     get:
@@ -154,10 +154,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CharacterSuggestion'      
+              type: object
+              $ref: '#/components/schemas/CharacterSuggestion'
       responses:
         '200':
-          description: No response data in case succesful request
+          description: No response data in case successful request
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/GameDetails'
   /games/{id}/turn:
     get:
       tags:
@@ -354,7 +360,16 @@ components:
       type: object
       properties:
         message:
-          type: string                        
+          type: string
+    PlayerSuggestion:
+      type: object
+      properties:
+        username:
+          type: string
+        nickname:
+          type: string
+        suggestion:
+          type: string
 #  ---- Enums section  ----------------------------------------            
     QuestionAnswer:
       type: string

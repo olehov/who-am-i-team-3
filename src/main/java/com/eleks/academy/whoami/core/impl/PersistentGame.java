@@ -104,6 +104,11 @@ public class PersistentGame implements SynchronousGame {
 	}
 
 	@Override
+	public Boolean findPlayerInGame(String player) {
+		return this.currentState.peek().findPlayer(player).isPresent();
+	}
+
+	@Override
 	public SynchronousPlayer enrollToGame(String player) {
 
 		GameState state = currentState.peek();

@@ -2,6 +2,7 @@ package com.eleks.academy.whoami.core.impl;
 
 import java.util.Objects;
 
+import com.eleks.academy.whoami.model.response.PlayerState;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -15,6 +16,8 @@ public class PersistentPlayer implements SynchronousPlayer {
 	private String nickname;
 	
 	private String characterSuggestion;
+
+	private String playerState;
 	
 	private boolean isSuggested = Boolean.FALSE;
 	
@@ -29,12 +32,12 @@ public class PersistentPlayer implements SynchronousPlayer {
 	
 	@Override
 	public boolean isSuggest() {
-		return isSuggested;
+		return this.isSuggested;
 	}
 	
 	@Override
 	public boolean isCharacterAssigned() {
-		return isCharacterAssigned;
+		return this.isCharacterAssigned;
 	}
 	
 	private void setNickName(String nickname) {
@@ -62,7 +65,17 @@ public class PersistentPlayer implements SynchronousPlayer {
 	
 	@Override
 	public String getGameCharacter() {
-		return gameCharacter;
+		return this.gameCharacter;
+	}
+
+	@Override
+	public String getPlayerState() {
+		return this.playerState;
+	}
+
+	@Override
+	public void setPlayerState(PlayerState playerState) {
+		this.playerState = playerState.toString();
 	}
 	
 	@Override

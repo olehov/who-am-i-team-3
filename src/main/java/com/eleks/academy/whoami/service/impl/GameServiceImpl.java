@@ -1,10 +1,14 @@
 package com.eleks.academy.whoami.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.eleks.academy.whoami.core.impl.PersistentPlayer;
+import com.eleks.academy.whoami.core.state.ProcessingQuestion;
 import com.eleks.academy.whoami.core.state.WaitingForPlayers;
+import com.eleks.academy.whoami.model.request.Question;
 import com.eleks.academy.whoami.model.response.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -78,7 +82,7 @@ public class GameServiceImpl implements GameService {
 				);
 
 		PlayerSuggestion inGamePlayer = (PlayerSuggestion) gameRepository.findById(id).flatMap(game -> game.findPlayer(player)).get();
-		return Optional.of(inGamePlayer);
+		return Optional.ofNullable(inGamePlayer);
 	}
 
 	@Override
@@ -90,8 +94,17 @@ public class GameServiceImpl implements GameService {
 	}
 
 	@Override
-	public void askQuestion(String gameId, String player, String message) {
-		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
+	public void askQuestion(String id, String player, Question question) {
+		Optional<SynchronousGame> game = this.gameRepository.findById(id);
+		if (game.isPresent() && (game.get().getState() instanceof ProcessingQuestion)){
+			if (game.get().findPlayerInGame(player)) {
+				((ProcessingQuestion) game.get().getState()).askQuestion(game.get().findPlayer(player).get(),question);
+			}else {
+				throw new PlayerNotFoundException("Player [" + player + "] not found");
+			}
+		}else {
+			throw new GameNotFoundException("Game with id:" + id + " not found");
+		}
 	}
 
 	@Override
