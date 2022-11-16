@@ -91,9 +91,15 @@ public class GameController {
 
 	@PostMapping("/{id}/guess")
 	public void submitGuess(@PathVariable("id") String id,
-							@RequestHeader(PLAYER) String player, @RequestBody Message message) {
+							@RequestHeader(PLAYER) String player, @RequestBody Question guess) {
 		
-		this.gameService.submitGuess(id, player, message.getMessage());
+		this.gameService.submitGuess(id, player, guess);
+	}
+
+	@PostMapping("/{id}/answer/guess")
+	public void answerGuess(@PathVariable("id") String id,
+							@RequestHeader(PLAYER) String player, @RequestBody QuestionAnswer answer){
+		this.gameService.answerGuess(id, player, answer);
 	}
 
 	@PostMapping("/{id}/answer")
@@ -129,7 +135,8 @@ public class GameController {
 	}
 
 	@GetMapping("/{id}/players-in-game")
-	public ResponseEntity<Integer> playersInInline(@RequestHeader(PLAYER) String player, @PathVariable("id") String id){
+	public ResponseEntity<Integer> playersInGame(@PathVariable("id") String id,
+												 @RequestHeader(PLAYER) String player){
 		return this.gameService.playersInGame(player,id)
 				.map(ResponseEntity::ok)
 				.orElseGet(()->ResponseEntity.notFound().build());

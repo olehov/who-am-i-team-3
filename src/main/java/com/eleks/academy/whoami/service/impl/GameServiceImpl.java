@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.eleks.academy.whoami.core.exception.GameException;
 import com.eleks.academy.whoami.core.impl.PersistentPlayer;
 import com.eleks.academy.whoami.core.state.ProcessingQuestion;
 import com.eleks.academy.whoami.core.state.WaitingForPlayers;
@@ -119,8 +120,31 @@ public class GameServiceImpl implements GameService {
 	}
 
 	@Override
-	public void submitGuess(String id, String player, String guess) {
-		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
+	public void submitGuess(String id, String player, Question guess) {
+		Optional<SynchronousGame> game = this.gameRepository.findById(id);
+		if (game.isPresent() && (game.get().getState() instanceof ProcessingQuestion)){
+			if (game.get().findPlayerInGame(player)) {
+				((ProcessingQuestion) game.get().getState()).submitGuess(game.get().findPlayer(player).get(),guess);
+			}else {
+				throw new PlayerNotFoundException("Player [" + player + "] not found");
+			}
+		}else {
+			throw new GameNotFoundException("Game with id:" + id + " not found");
+		}
+	}
+
+	@Override
+	public void answerGuess(String id, String player, QuestionAnswer answer) {
+		Optional<SynchronousGame> game = this.gameRepository.findById(id);
+		if (game.isPresent() && (game.get().getState() instanceof ProcessingQuestion)){
+			if (game.get().findPlayerInGame(player)) {
+				((ProcessingQuestion) game.get().getState()).answerGuess(game.get().findPlayer(player).get(),answer);
+			}else {
+				throw new PlayerNotFoundException("Player [" + player + "] not found");
+			}
+		}else {
+			throw new GameNotFoundException("Game with id:" + id + " not found");
+		}
 	}
 
 	@Override
@@ -135,7 +159,6 @@ public class GameServiceImpl implements GameService {
 		}else {
 			throw new GameNotFoundException("Game with id:" + id + " not found");
 		}
-		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
 
 	@Override

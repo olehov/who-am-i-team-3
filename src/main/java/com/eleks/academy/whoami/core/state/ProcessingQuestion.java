@@ -63,10 +63,6 @@ public final class ProcessingQuestion implements GameState {
 		return this.playerCharacterMap;
 	}
 
-	public String getCurrentTurn() {
-		return this.currentPlayer;
-	}
-
 	@Override
 	public GameState getCurrentState() {
 		return this;
@@ -134,18 +130,64 @@ public final class ProcessingQuestion implements GameState {
 		}
 	}
 
-	public Boolean isReadyToNextPlayer(){
-		int i = 1;
+	public void submitGuess(SynchronousPlayer player, Question guess){
+		if(!player.getPlayerState().equals(PlayerState.ASKING)){
+			throw new GameException("Player [" + player.getUserName() + "] not asker");
+		}else{
+			this.turns.add(new TurnInfo(player, guess));
+			player.setPlayerState(PlayerState.WAITING_ANSWERS);
+		}
+	}
+
+	public void answerGuess(SynchronousPlayer player, QuestionAnswer answer){
+		if(player.getPlayerState().equals(PlayerState.ANSWERED)){
+			throw new GameException("Player [" + player.getUserName() + "] answered");
+		}else if(!player.getPlayerState().equals(PlayerState.ANSWERING)){
+			throw new GameException("Player [" + player.getUserName() + "] not answering question");
+		}else {
+			var turn = turns.get(turns.size() - 1);
+			turn.addAnswer(PlayerWithState.of(player, answer));
+			player.setPlayerState(PlayerState.ANSWERED);
+			if(!isWinner(turn)){
+				changeTurn();
+			}
+		}
+	}
+
+	private Boolean isWinner(TurnInfo turn){
+		if(turn.getAnswers().size() == players.size()){
+			int positiveCount = 0;
+			int negativeCount = 0;
+				for (var answer : turn.getAnswers()) {
+					if (answer.getAnswer().equals(QuestionAnswer.YES)) {
+						positiveCount++;
+					} else {
+						negativeCount++;
+					}
+				}
+
+				if(positiveCount >= negativeCount){
+					changeTurn();
+					players.remove(turn.getAsker());
+					return true;
+				}else {
+					return false;
+				}
+			}else {
+			throw new GameException("Not all players answered question");
+		}
+
+	}
+
+	private Boolean isReadyToNextPlayer(){
 		int positiveCount = 0;
 		int negativeCount = 0;
 		var turn = turns.get(turns.size() - 1);
 		if(turn.getAnswers().size() == players.size()) {
 			for (var answer : turn.getAnswers()) {
 				if (answer.getAnswer().equals(QuestionAnswer.YES) || answer.getAnswer().equals(QuestionAnswer.NOT_SURE)) {
-					i++;
 					positiveCount++;
 				} else {
-					i++;
 					negativeCount++;
 				}
 			}

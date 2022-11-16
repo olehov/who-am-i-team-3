@@ -28,7 +28,9 @@ public interface GameService {
 
 	Optional<TurnDetails> findTurnInfo(String id, String player);
 
-	void submitGuess(String id, String player, String guess);
+	void submitGuess(String id, String player, Question guess);
+
+	void answerGuess(String id, String player, QuestionAnswer answer);
 
 	void answerQuestion(String id, String player, QuestionAnswer answer);
 
