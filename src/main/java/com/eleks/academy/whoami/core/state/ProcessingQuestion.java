@@ -150,6 +150,10 @@ public final class ProcessingQuestion implements GameState {
 			player.setPlayerState(PlayerState.ANSWERED);
 			if(!isWinner(turn)){
 				changeTurn();
+			}else{
+				if(isReadyToNextState()){
+					next();
+				}
 			}
 		}
 	}
@@ -174,6 +178,7 @@ public final class ProcessingQuestion implements GameState {
 					return false;
 				}
 			}else {
+//			return true; if throw new GameException equals FALSE ------> uncomment
 			throw new GameException("Not all players answered question");
 		}
 
