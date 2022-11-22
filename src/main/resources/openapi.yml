@@ -30,7 +30,7 @@ paths:
   /games/info:
     get:
       tags:
-        - game
+        -game
       description: Return a list all games
       operationId: findAllGamesInfo
       parameters:
@@ -324,7 +324,7 @@ paths:
               $ref: '#/components/schemas/QuestionAnswer'
       responses:
         '200':
-          description: No response data in case successful request
+          description: No response data in case succesful request
   /games/quick:
     post:
       tags:
@@ -460,8 +460,7 @@ components:
         characterSuggestion:
           type: string
         playerState:
-          type: object
-          $ref: "#/components/schemas/PlayerState'
+          type: string
         isSuggested:
           type: boolean
         gameCharacter:
