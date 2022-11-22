@@ -12,11 +12,11 @@ import com.eleks.academy.whoami.model.response.*;
 
 public interface GameService {
 
-	List<GameLight> findAvailableGames(String player);
+	Optional<List<GameLight>> findAvailableGames(String player);
 
 	GameDetails createGame(String player, NewGameRequest gameRequest);
 
-	SynchronousPlayer enrollToGame(String id, String player);
+	Optional<SynchronousPlayer> enrollToGame(String id, String player);
 
 	Optional<GameDetails> findByIdAndPlayer(String id, String player);
 
@@ -38,7 +38,7 @@ public interface GameService {
 
 	Optional<LeaveModel> leaveGame(String id, String player);
 
-	List<AllFields> findAllGamesInfo(String player);
+	Optional<List<AllFields>> findAllGamesInfo(String player);
 
 	void changePlayersOnline(String player, int playersOnline);
 

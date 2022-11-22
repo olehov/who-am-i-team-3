@@ -22,13 +22,18 @@ public class GameController {
 	private final GameService gameService;
 
 	@GetMapping
-	public List<GameLight> findAvailableGames(@RequestHeader(PLAYER) String player) {
-		return this.gameService.findAvailableGames(player);
+	public ResponseEntity<List<GameLight>> findAvailableGames(@RequestHeader(PLAYER) String player) {
+		return this.gameService.findAvailableGames(player)
+				.map(ResponseEntity::ok)
+				.orElseGet(()->ResponseEntity.notFound().build());
+
 	}
 	
 	@GetMapping("/info")
-	public List<AllFields> findAllGamesInfo(@RequestHeader(PLAYER) String player) {
-		return this.gameService.findAllGamesInfo(player);
+	public ResponseEntity<List<AllFields>> findAllGamesInfo(@RequestHeader(PLAYER) String player) {
+		return this.gameService.findAllGamesInfo(player)
+				.map(ResponseEntity::ok)
+				.orElseGet(()->ResponseEntity.notFound().build());
 	}
 	
 	@PostMapping("/create")
@@ -49,13 +54,14 @@ public class GameController {
 	}
 
 	@PostMapping("/{id}/players")
-	public SynchronousPlayer enrollToGame(@PathVariable("id") String id,
+	public ResponseEntity<SynchronousPlayer> enrollToGame(@PathVariable("id") String id,
 										  @RequestHeader(PLAYER) String player) {
-		return this.gameService.enrollToGame(id, player);
+		return this.gameService.enrollToGame(id, player)
+				.map(ResponseEntity::ok)
+				.orElseGet(()->ResponseEntity.notFound().build());
 	}
 
 	@PostMapping("/{id}/characters")
-	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<PlayerSuggestion> suggestCharacter(@PathVariable("id") String id,
 															@RequestHeader(PLAYER) String player,
 															@Valid @RequestBody CharacterSuggestion suggestion) {
@@ -74,7 +80,7 @@ public class GameController {
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 	
-	@PostMapping("/{id}")
+	@PostMapping("/{id}/start")
 	public ResponseEntity<StartGameModel> startGame(@PathVariable("id") String id,
 												 @RequestHeader(PLAYER) String player) {
 		return this.gameService.startGame(id, player)
@@ -83,6 +89,7 @@ public class GameController {
 	}
 
 	@PostMapping("/{id}/questions")
+	@ResponseStatus(HttpStatus.OK)
 	public void askQuestion(@PathVariable("id") String id,
 							@RequestHeader(PLAYER) String player, @RequestBody Question question) {
 		
@@ -90,6 +97,7 @@ public class GameController {
 	}
 
 	@PostMapping("/{id}/guess")
+	@ResponseStatus(HttpStatus.OK)
 	public void submitGuess(@PathVariable("id") String id,
 							@RequestHeader(PLAYER) String player, @RequestBody Question guess) {
 		
@@ -97,12 +105,14 @@ public class GameController {
 	}
 
 	@PostMapping("/{id}/answer/guess")
+	@ResponseStatus(HttpStatus.OK)
 	public void answerGuess(@PathVariable("id") String id,
 							@RequestHeader(PLAYER) String player, @RequestBody QuestionAnswer answer){
 		this.gameService.answerGuess(id, player, answer);
 	}
 
 	@PostMapping("/{id}/answer")
+	@ResponseStatus(HttpStatus.OK)
 	public void answerQuestion(@PathVariable("id") String id,
 							   @RequestHeader(PLAYER) String player, @RequestBody QuestionAnswer answer) {
 		

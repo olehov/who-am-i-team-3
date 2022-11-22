@@ -37,8 +37,8 @@ public class GameServiceImpl implements GameService {
 	private final GameRepository gameRepository;
 
 	@Override
-	public List<GameLight> findAvailableGames(String player) {
-		return this.gameRepository.findAllAvailable(player).map(GameLight::of).toList();
+	public Optional<List<GameLight>> findAvailableGames(String player) {
+		return Optional.ofNullable(this.gameRepository.findAllAvailable(player).map(GameLight::of).toList());
 	}
 
 	@Override
@@ -50,12 +50,12 @@ public class GameServiceImpl implements GameService {
 
 	//TODO: implement validations for create custom game
 	@Override
-	public SynchronousPlayer enrollToGame(String id, String player) {
+	public Optional<SynchronousPlayer> enrollToGame(String id, String player) {
 
 		if (this.gameRepository.findPlayerByHeader(player).isPresent()) {
 			throw new PlayerAlreadyInGameException("ENROLL-TO-GAME: [" + player + "] already in other game.");
 		} else this.gameRepository.savePlayer(player);
-		return this.gameRepository.findById(id).get().enrollToGame(player);
+		return Optional.ofNullable(this.gameRepository.findById(id).get().enrollToGame(player));
 	}
 
 	@Override
@@ -206,8 +206,8 @@ public class GameServiceImpl implements GameService {
 	}
 
 	@Override
-	public List<AllFields> findAllGamesInfo(String player) {
-		return this.gameRepository.findAllGames(player).map(AllFields::of).toList();
+	public Optional<List<AllFields>> findAllGamesInfo(String player) {
+		return Optional.ofNullable(this.gameRepository.findAllGames(player).map(AllFields::of).toList());
 	}
 
 	@Override
