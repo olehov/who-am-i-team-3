@@ -482,7 +482,7 @@ components:
           $ref: '#/components/schemas/SynchronousPlayer'
         question:
           type: object
-          $ref: '#components/schemas/Question'
+          $ref: '#/components/schemas/Question'
         players:
           type: array
           items:
