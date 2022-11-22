@@ -83,7 +83,7 @@ public class GameServiceImpl implements GameService {
 						}
 				);
 
-		PlayerSuggestion inGamePlayer = (PlayerSuggestion) gameRepository.findById(id).flatMap(game -> game.findPlayer(player)).get();
+		PlayerSuggestion inGamePlayer = PlayerSuggestion.of(gameRepository.findById(id).flatMap(game -> game.findPlayer(player)).get());
 		return Optional.ofNullable(inGamePlayer);
 	}
 
@@ -100,7 +100,7 @@ public class GameServiceImpl implements GameService {
 		Optional<SynchronousGame> game = this.gameRepository.findById(id);
 		if (game.isPresent() && (game.get().getState() instanceof ProcessingQuestion)){
 			if (game.get().findPlayerInGame(player)) {
-				((ProcessingQuestion) game.get().getState()).askQuestion(game.get().findPlayer(player).get(),question);
+				((ProcessingQuestion) game.get().getState()).askQuestion(player,question);
 			}else {
 				throw new PlayerNotFoundException("Player [" + player + "] not found");
 			}

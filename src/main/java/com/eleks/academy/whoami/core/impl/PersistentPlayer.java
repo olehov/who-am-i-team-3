@@ -17,7 +17,7 @@ public class PersistentPlayer implements SynchronousPlayer {
 	
 	private String characterSuggestion;
 
-	private String playerState;
+	private PlayerState playerState;
 	
 	private boolean isSuggested = Boolean.FALSE;
 	
@@ -69,13 +69,13 @@ public class PersistentPlayer implements SynchronousPlayer {
 	}
 
 	@Override
-	public String getPlayerState() {
+	public PlayerState getPlayerState() {
 		return this.playerState;
 	}
 
 	@Override
 	public void setPlayerState(PlayerState playerState) {
-		this.playerState = playerState.toString();
+		this.playerState = playerState;
 	}
 	
 	@Override

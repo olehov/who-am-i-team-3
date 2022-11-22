@@ -140,6 +140,7 @@ public class PersistentGame implements SynchronousGame {
 	public SynchronousGame start() {
 //		this.currentState.peek().next();
 		this.currentState.add(currentState.peek().next());
+		this.currentState.poll();
 		return this;
 	}
 

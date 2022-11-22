@@ -17,7 +17,7 @@ public interface SynchronousPlayer {
 
 	String getGameCharacter();
 
-    String getPlayerState();
+    PlayerState getPlayerState();
 
 	void setPlayerState(PlayerState playerState);
 

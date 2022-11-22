@@ -121,12 +121,6 @@ public final class SuggestingCharacters implements GameState {
 			throw new GameException("isAllPlayersAssigned = FALSE");
 		}
 
-		this.players.values().stream().toList().get(0).setPlayerState(PlayerState.ASKING);
-
-		for(i = 1; i < this.players.size(); i++){
-			this.players.values().stream().toList().get(i).setPlayerState(PlayerState.ANSWERING);
-		}
-
 		return this;
 	}
 
