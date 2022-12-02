@@ -39,7 +39,7 @@ public final class SuggestingCharacters implements GameState {
 		this.suggestedCharacters = new HashMap<>(this.players.size());
 		this.playerCharacterMap = new ConcurrentHashMap<>(this.players.size());
 		for(var player:players.values()){
-			player.setPlayerState(PlayerState.CHARACTER_SUGGESTION);
+			player.setPlayerState(PlayerState.NOT_READY);
 		}
 	}
 

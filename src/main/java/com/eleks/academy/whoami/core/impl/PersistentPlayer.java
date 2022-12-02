@@ -92,6 +92,7 @@ public class PersistentPlayer implements SynchronousPlayer {
 			this.isSuggested = Boolean.TRUE;
 			setNickName(suggestion.getNickname());
 			setCharacter(suggestion.getCharacter());
+			setPlayerState(PlayerState.READY);
 		}
 		else {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Suggestion has already been submitted!");

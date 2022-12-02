@@ -9,8 +9,8 @@ import org.springframework.context.annotation.FilterType;
 
 @SpringBootApplication
 @ComponentScan(basePackages = {"com.eleks.academy.whoami"}, excludeFilters = {
-//		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = ApiClient.class),
-//		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = GameApi.class)
+		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = ApiClient.class),
+		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = GameApi.class)
 //		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = Question.class)
 })
 public class WhoAmIApplication {
