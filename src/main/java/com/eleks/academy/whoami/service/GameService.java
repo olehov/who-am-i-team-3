@@ -7,15 +7,16 @@ import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
 import com.eleks.academy.whoami.model.request.Question;
+import com.eleks.academy.whoami.model.request.QuestionAnswer;
 import com.eleks.academy.whoami.model.response.*;
 
 public interface GameService {
 
-	List<GameLight> findAvailableGames(String player);
+	Optional<List<GameLight>> findAvailableGames(String player);
 
 	GameDetails createGame(String player, NewGameRequest gameRequest);
 
-	SynchronousPlayer enrollToGame(String id, String player);
+	Optional<SynchronousPlayer> enrollToGame(String id, String player);
 
 	Optional<GameDetails> findByIdAndPlayer(String id, String player);
 
@@ -27,15 +28,17 @@ public interface GameService {
 
 	Optional<TurnDetails> findTurnInfo(String id, String player);
 
-	void submitGuess(String id, String player, String guess);
+	void submitGuess(String id, String player, Question guess);
 
-	void answerQuestion(String id, String player, String answer);
+	void answerGuess(String id, String player, QuestionAnswer answer);
+
+	void answerQuestion(String id, String player, QuestionAnswer answer);
 
 	Optional<QuickGame> findQuickGame(String player);
 
 	Optional<LeaveModel> leaveGame(String id, String player);
 
-	List<AllFields> findAllGamesInfo(String player);
+	Optional<List<AllFields>> findAllGamesInfo(String player);
 
 	void changePlayersOnline(String player, int playersOnline);
 

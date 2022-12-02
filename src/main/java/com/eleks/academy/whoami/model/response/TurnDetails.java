@@ -2,6 +2,7 @@ package com.eleks.academy.whoami.model.response;
 
 import com.eleks.academy.whoami.core.SynchronousGame;
 import com.eleks.academy.whoami.core.SynchronousPlayer;
+import com.eleks.academy.whoami.core.impl.TurnInfo;
 import com.eleks.academy.whoami.model.request.Question;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,10 +24,11 @@ public class TurnDetails {
 	private List<PlayerWithState> players;
 
 
-	public static TurnDetails of(List<PlayerWithState> players, SynchronousPlayer player){
+	public static TurnDetails of(TurnInfo currentTurn){
 		return TurnDetails.builder()
-				.currentPlayer(player)
-				.players(players)
+				.currentPlayer(currentTurn.getAsker())
+				.players(currentTurn.getAnswers())
+				.question(currentTurn.getQuestion())
 				.build();
 	}
 

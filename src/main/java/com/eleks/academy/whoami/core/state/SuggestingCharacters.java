@@ -39,7 +39,7 @@ public final class SuggestingCharacters implements GameState {
 		this.suggestedCharacters = new HashMap<>(this.players.size());
 		this.playerCharacterMap = new ConcurrentHashMap<>(this.players.size());
 		for(var player:players.values()){
-			player.setPlayerState(PlayerState.CHARACTER_SUGGESTION);
+			player.setPlayerState(PlayerState.NOT_READY);
 		}
 	}
 
@@ -119,12 +119,6 @@ public final class SuggestingCharacters implements GameState {
 
 		if (!isAllPlayersAssigned()) {
 			throw new GameException("isAllPlayersAssigned = FALSE");
-		}
-
-		this.players.values().stream().toList().get(0).setPlayerState(PlayerState.ASKING);
-
-		for(i = 1; i < this.players.size(); i++){
-			this.players.values().stream().toList().get(i).setPlayerState(PlayerState.ANSWERING);
 		}
 
 		return this;

@@ -11,8 +11,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 import com.eleks.academy.whoami.core.exception.PlayerNotFoundException;
+import com.eleks.academy.whoami.core.impl.Answer;
 import com.eleks.academy.whoami.core.impl.TurnInfo;
 import com.eleks.academy.whoami.model.request.Question;
+import com.eleks.academy.whoami.model.request.QuestionAnswer;
 import com.eleks.academy.whoami.model.response.PlayerState;
 import com.eleks.academy.whoami.model.response.PlayerWithState;
 import com.eleks.academy.whoami.model.response.TurnDetails;
@@ -22,27 +24,24 @@ import org.springframework.web.server.ResponseStatusException;
 // TODO: Implement makeTurn(...) and next() methods, pass a turn to next player
 public final class ProcessingQuestion implements GameState {
 
-	private final String currentPlayer;
-
 	private final Map<String, SynchronousPlayer> players;
 
 	private final Map<String, String> playerCharacterMap;
 
-	private final List<PlayerWithState> playersWithState;
-
 	private final List<TurnInfo> turns;
+
+	private TurnInfo currentTurn;
 
 	public ProcessingQuestion(Map<String, SynchronousPlayer> players) {
 		this.players = players;
 		this.playerCharacterMap = new ConcurrentHashMap<>();
-		this.playersWithState = new ArrayList<>();
 		this.turns = new ArrayList<>();
-
-		this.currentPlayer = players.keySet()
-				.stream()
-				.findAny()
-				.orElse(null);
+		getPlayersList().toList().get(0).setPlayerState(PlayerState.ASKING);
+		for(int i = 1; i < this.players.size(); i++){
+			getPlayersList().toList().get(i).setPlayerState(PlayerState.ANSWERING);
+		}
 	}
+
 
 	@Override
 	public GameState next() {
@@ -61,13 +60,22 @@ public final class ProcessingQuestion implements GameState {
 		return this.playerCharacterMap;
 	}
 
-	public String getCurrentTurn() {
-		return this.currentPlayer;
-	}
-
 	@Override
 	public GameState getCurrentState() {
 		return this;
+	}
+
+	public TurnInfo getCurrentTurn() {
+		if(!turns.equals(null)) {
+			if (turns.size() > 1) {
+				this.currentTurn = turns.get(turns.size() - 1);
+			} else {
+				this.currentTurn = turns.get(0);
+			}
+			return this.currentTurn;
+		}else{
+			throw new GameException("Turns is null");
+		}
 	}
 
 	@Override
@@ -103,12 +111,148 @@ public final class ProcessingQuestion implements GameState {
 		return this.players.size();
 	}
 
-	public void askQuestion(SynchronousPlayer player, Question question){
-		if(!player.getPlayerState().equals(PlayerState.ASKING)){
-			throw new GameException("Player [" + player.getUserName() + "] not asker");
-		}else{
-			this.turns.add(new TurnInfo(player, question));
-			player.setPlayerState(PlayerState.WAITING_ANSWERS);
+	public Optional<TurnDetails> findTurnInfo(){
+		getCurrentTurn();
+		return Optional.ofNullable(TurnDetails.of(currentTurn));
+	}
+
+	public void askQuestion(String player, Question question) {
+		/*if(this.turns.size() == 0){
+			getPlayersList().toList().get(0).setPlayerState(PlayerState.ASKING);
+			for(int i = 1; i < this.players.size(); i++){
+				getPlayersList().toList().get(i).setPlayerState(PlayerState.ANSWERING);
+			}
+		}*/
+		if (this.players.get(player).getPlayerState().equals(PlayerState.WAITING_ANSWERS)) {
+			throw new GameException("Player [" + player + "] waiting for answers");
+		} else if (this.players.get(player).getPlayerState().equals(PlayerState.ASKING)) {
+			this.turns.add(new TurnInfo(this.players.get(player), question));
+			this.players.get(player).setPlayerState(PlayerState.WAITING_ANSWERS);
+		} else {
+			throw new GameException("Player [" + player + "] not asker");
 		}
 	}
+
+	public void answerQuestion(SynchronousPlayer player, QuestionAnswer answer) {
+		SynchronousPlayer gamePlayer = this.players.get(player.getUserName());
+		if(gamePlayer.getPlayerState().equals(PlayerState.ANSWERED)){
+			throw new GameException("Player [" + player.getUserName() + "] answered");
+		}else if(!gamePlayer.getPlayerState().equals(PlayerState.ANSWERING)){
+			throw new GameException("Player [" + player.getUserName() + "] not answering question");
+		}else {
+			getCurrentTurn().addAnswer(PlayerWithState.of(player, answer));
+			gamePlayer.setPlayerState(PlayerState.ANSWERED);
+			if(isReadyToNextPlayer()){
+				changeTurn();
+			}
+		}
+	}
+
+	public void submitGuess(SynchronousPlayer player, Question guess){
+		SynchronousPlayer gamePlayer = this.players.get(player.getUserName());
+		if(!gamePlayer.getPlayerState().equals(PlayerState.ASKING)){
+			throw new GameException("Player [" + player.getUserName() + "] not asker");
+		}else{
+			this.turns.add(new TurnInfo(player, guess));
+			gamePlayer.setPlayerState(PlayerState.WAITING_ANSWERS);
+		}
+	}
+
+	public void answerGuess(SynchronousPlayer player, QuestionAnswer answer){
+		SynchronousPlayer gamePlayer = this.players.get(player.getUserName());
+		if(gamePlayer.getPlayerState().equals(PlayerState.ANSWERED)){
+			throw new GameException("Player [" + player.getUserName() + "] answered");
+		}else if(!gamePlayer.getPlayerState().equals(PlayerState.ANSWERING)){
+			throw new GameException("Player [" + player.getUserName() + "] not answering question");
+		}else {
+			getCurrentTurn().addAnswer(PlayerWithState.of(player, answer));
+			gamePlayer.setPlayerState(PlayerState.ANSWERED);
+			if(!isWinner(this.currentTurn)){
+				changeTurn();
+			}
+			if(isReadyToNextState()){
+				next();
+			}
+		}
+	}
+
+	private Boolean isWinner(TurnInfo turn){
+		if(turn.getAnswers().size() == players.size() - 1){
+			int positiveCount = 0;
+			int negativeCount = 0;
+				for (var answer : turn.getAnswers()) {
+					if (answer.getAnswer().equals(QuestionAnswer.YES)) {
+						positiveCount++;
+					} else {
+						negativeCount++;
+					}
+				}
+
+				if(positiveCount >= negativeCount){
+					changeTurn();
+					remove(currentTurn.getAsker().getUserName());
+					return true;
+				}else {
+					return false;
+				}
+			}else {
+//			return true; if throw new GameException equals FALSE ------> uncomment
+			throw new GameException("Waiting for players answers");
+		}
+
+	}
+
+	private Boolean isReadyToNextPlayer(){
+		int positiveCount = 0;
+		int negativeCount = 0;
+		getCurrentTurn();
+		if(this.currentTurn.getAnswers().size() == players.size() - 1) {
+			for (var answer : this.currentTurn.getAnswers()) {
+				if (answer.getAnswer().equals(QuestionAnswer.YES) || answer.getAnswer().equals(QuestionAnswer.NOT_SURE)) {
+					positiveCount++;
+				} else {
+					negativeCount++;
+				}
+			}
+
+			if(positiveCount >= negativeCount){
+				players.get(this.currentTurn.getAsker().getUserName()).setPlayerState(PlayerState.ASKING);
+				for(var player:players.values()){
+					if(!player.getPlayerState().equals(PlayerState.ASKING)){
+						player.setPlayerState(PlayerState.ANSWERING);
+					}
+				}
+				return false;
+			}else {
+				return true;
+			}
+		}else{
+			throw new GameException("Don't all players answer question");
+		}
+	}
+
+	private void changeTurn(){
+		SynchronousPlayer currentPlayer = getCurrentTurn().getAsker();
+		int playerPosition = currentPlayerPosition(currentPlayer) + 1;
+		if(playerPosition == players.size()){
+			playerPosition = 0;
+		}
+		for(int i = 0; i < players.values().size(); i++){
+			if(playerPosition == i){
+				players.values().stream().toList().get(i).setPlayerState(PlayerState.ASKING);
+			}else{
+				players.values().stream().toList().get(i).setPlayerState(PlayerState.ANSWERING);
+			}
+		}
+	}
+
+	private int currentPlayerPosition(SynchronousPlayer currentPlayer){
+		for(int i = 0; i < players.values().size(); i++){
+			if(players.values().stream().toList().get(i).equals(currentPlayer)){
+				return i;
+			}
+		}
+		throw new GameException("Player [" + currentPlayer.getUserName() + "] position not found");
+	}
+
 }

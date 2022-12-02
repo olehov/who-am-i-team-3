@@ -10,7 +10,7 @@ paths:
     get:
       tags:
         - game
-      description: Returns a list available games
+      description: Return a list available games
       operationId: findAvailableGames
       parameters:
         - in: header
@@ -20,17 +20,39 @@ paths:
             type: string               
       responses:
         '200':
-          description: Returns a list of available games
+          description: Return a list of available games
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/GameLight'
+  /games/info:
+    get:
+      tags:
+        -game
+      description: Return a list all games
+      operationId: findAllGamesInfo
+      parameters:
+        - in: header
+          name: X-Player
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Return a list of all games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AllFields'
+  /games/create:
     post:
       tags:
         - game
-      description: Creates game
+      description: Create game
       operationId: createGame
       parameters:
         - in: header
@@ -47,7 +69,7 @@ paths:
               $ref: '#/components/schemas/NewGameRequest'
       responses:
         '201':
-          description: Returns details about created game
+          description: Return details about created game
           content:
             application/json:
               schema:
@@ -57,7 +79,7 @@ paths:
     get:
       tags:
         - game
-      description: Returns data about game by game id
+      description: Return data about game by game id
       operationId: findById
       parameters:
         - in: header
@@ -73,42 +95,17 @@ paths:
             type: string
       responses:
         '200':
-          description: Returns details about game by id
+          description: Return details about game by id
           content:
             application/json:
               schema:
                 type: object
                 $ref: '#/components/schemas/GameDetails'
-    post:
-      tags:
-        - game
-      description: Start game
-      operationId: startGame
-      parameters:
-        - in: header
-          name: X-Player
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: id
-          description: Game id
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Returns details about game by id
-          content:
-            application/json:
-              schema:
-                type: object
-                $ref: '#/components/schemas/GameDetails'              
   /games/{id}/players:
     post:
       tags:
         - game
-      description: Enrolls(adds) user to game
+      description: Enroll (add) user to game
       operationId: enrollToGame
       parameters:
         - in: header
@@ -124,7 +121,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Returns enrolled player
+          description: Return enrolled player
           content:
             application/json:
               schema:
@@ -163,12 +160,12 @@ paths:
             application/json:
               schema:
                 type: object
-                $ref: '#/components/schemas/GameDetails'
+                $ref: '#/components/schemas/PlayerSuggestion'
   /games/{id}/turn:
     get:
       tags:
         - game
-      description: Returns data about current turn
+      description: Return data about current turn
       operationId: findTurnInfo
       parameters:
         - in: header
@@ -184,12 +181,38 @@ paths:
             type: string
       responses:
         '200':
-          description: Returns details about game by id
+          description: Return details about game by id
           content:
             application/json:
               schema:
                 type: object
                 $ref: '#/components/schemas/TurnDetails'
+  /games/{id}/start:
+    post:
+      tags:
+        - game
+      description: Start game
+      operationId: startGame
+      parameters:
+        - in: header
+          name: X-Player
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: id
+          description: Game id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Return details about start game by id
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/StartGameModel'
   /games/{id}/questions:
     post:
       tags:
@@ -209,15 +232,15 @@ paths:
           schema:
             type: string
       requestBody:
-        description: Message model
+        description: Question model
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Message'      
+              $ref: '#/components/schemas/Question'
       responses:
         '200':
-          description: No response data in case succesful request
+          description: No response data in case successful request
   /games/{id}/guess:
     post:
       tags:
@@ -237,15 +260,43 @@ paths:
           schema:
             type: string
       requestBody:
-        description: Message model
+        description: Question model
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Message'      
+              $ref: '#/components/schemas/Question'
       responses:
         '200':
-          description: No response data in case succesful request
+          description: No response data in case successful request
+  /games/{id}/answer/guess:
+    post:
+      tags:
+        - game
+      description: answer guess question
+      operationId: answerGuess
+      parameters:
+        - in: header
+          name: X-Player
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: id
+          description: Game id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Question answer model
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionAnswer'
+      responses:
+        '200':
+          description: No response data in case successful request
   /games/{id}/answer:
     post:
       tags:
@@ -265,12 +316,12 @@ paths:
           schema:
             type: string
       requestBody:
-        description: Message model
+        description: Question answer model
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Message'      
+              $ref: '#/components/schemas/QuestionAnswer'
       responses:
         '200':
           description: No response data in case succesful request
@@ -278,7 +329,7 @@ paths:
     post:
       tags:
         - game
-      description: Creates game
+      description: Create or find quick game
       operationId: findQuickGame
       parameters:
         - in: header
@@ -289,7 +340,81 @@ paths:
       responses:
         '200':
           description: Model for quick game creation
-
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/QuickGame'
+  /games/{id}/leave:
+    delete:
+      tags:
+        - game
+      description: Leave game
+      operationId: leaveGame
+      parameters:
+        - in: header
+          name: X-Player
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: id
+          description: Game id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Model for leave game
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/LeaveModel'
+  /games/all-players-count:
+    get:
+      tags:
+        - game
+      description: Check all players online
+      operationId: playersOnlineInfo
+      parameters:
+        - in: header
+          name: X-Player
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Model for check players online
+          content:
+            application/json:
+              schema:
+                type: integer
+  /games/{id}/players-in-game:
+    get:
+      tags:
+        - game
+      description: Check players in game
+      operationId: playersInGame
+      parameters:
+        - in: header
+          name: X-Player
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: id
+          description: Game id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Model for check players in game
+          content:
+            application/json:
+              schema:
+                type: integer
         #  ----- Components  ----------------------------------------
 components:                 
   schemas:
@@ -314,12 +439,8 @@ components:
           type: string
         status:
           type: string
-        currentTurn:
+        playersInGame:
           type: string
-        players:
-          type: array
-          items:
-            $ref: '#/components/schemas/PlayerWithState'
     PlayerWithState:
       type: object
       properties:
@@ -329,20 +450,27 @@ components:
         answer:
           type: object
           $ref: '#/components/schemas/QuestionAnswer'
-        state:
-          type: object
-          $ref: '#/components/schemas/PlayerState'            
     SynchronousPlayer:
       type: object
       properties:
-        name:
+        userName:
           type: string
-        character:
+        nickName:
           type: string
+        characterSuggestion:
+          type: string
+        playerState:
+          type: string
+        isSuggested:
+          type: boolean
+        gameCharacter:
+          type: string
+        isCharacterAssigned:
+          type: boolean
     CharacterSuggestion:
       type: object
       properties:
-        name:
+        nickname:
           type: string
         character:
           type: string
@@ -352,10 +480,18 @@ components:
         currentPlayer:
           type: object
           $ref: '#/components/schemas/SynchronousPlayer'
+        question:
+          type: object
+          $ref: '#/components/schemas/Question'
         players:
           type: array
           items:
             $ref: '#/components/schemas/PlayerWithState'
+    Question:
+      type: object
+      properties:
+        question:
+          type: string
     Message:
       type: object
       properties:
@@ -370,13 +506,78 @@ components:
           type: string
         suggestion:
           type: string
+    AllFields:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+        accessibility:
+          type: boolean
+        playersInGame:
+          type: string
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/BasePlayerModel'
+    BasePlayerModel:
+      type: object
+      properties:
+        username:
+          type: string
+        nickname:
+          type: string
+        gameCharacter:
+          type: string
+        characterSuggestion:
+          type: string
+        isSuggested:
+          type: boolean
+        isCharacterAssigned:
+          type: boolean
+    StartGameModel:
+      type: object
+      properties:
+        gameId:
+          type: string
+        gameState:
+          type: string
+        playersInGame:
+          type: string
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/BasePlayerModel'
+    QuickGame:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+        accessibility:
+          type: boolean
+        playersInGame:
+          type: string
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/BasePlayerModel'
+    LeaveModel:
+      type: object
+      properties:
+        username:
+          type: string
+        gameId:
+          type: string
 #  ---- Enums section  ----------------------------------------            
     QuestionAnswer:
       type: string
       enum:
-        - "YES"
-        - "NO"
-        - NOT_SURE     
+        - YES
+        - NO
+        - NOT_SURE
     PlayerState:
       type: string
       enum:
@@ -384,4 +585,7 @@ components:
         - READY
         - ASKING
         - ANSWERING
-        - FINISHED              
+        - FINISHED
+        - CHARACTER_SUGGESTION
+        - WAITING_ANSWERS
+        - ANSWERED
