@@ -1,18 +1,19 @@
 package com.eleks.academy.whoami.core;
 
-import com.eleks.academy.whoami.model.request.Question;
-import com.eleks.academy.whoami.model.request.QuestionAnswer;
-import com.eleks.academy.whoami.model.response.PlayerWithState;
-import com.eleks.academy.whoami.model.response.TurnDetails;
+import com.eleks.academy.whoami.core.impl.PersistentPlayer;
 
 import java.util.List;
 
 public interface Turn {
-	
-	SynchronousPlayer getAsker();
 
-	Question getQuestion();
+    PersistentPlayer getCurrentPlayer();
 
-	List<PlayerWithState> getAnswers();
+    List<PersistentPlayer> getOtherPlayers();
+
+    Turn changeTurn();
+
+    void removePLayer(String playerId);
+
+    List<PersistentPlayer> getAllPlayers();
 
 }

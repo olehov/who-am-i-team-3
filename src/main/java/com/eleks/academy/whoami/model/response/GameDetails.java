@@ -1,11 +1,14 @@
 package com.eleks.academy.whoami.model.response;
 
-import com.eleks.academy.whoami.core.SynchronousGame;
-
+import com.eleks.academy.whoami.core.impl.PersistentGame;
+import com.eleks.academy.whoami.core.impl.PersistentPlayer;
+import com.eleks.academy.whoami.enums.GameStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @Builder
@@ -13,18 +16,16 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class GameDetails {
 
-	private String id;
+    private String id;
+    private GameStatus status;
+    private List<PersistentPlayer> players;
+    private List<PersistentPlayer> winners;
 
-	private String status;
-
-	private String playersInGame;
-
-	public static GameDetails of(SynchronousGame game) {
-		return GameDetails.builder()
-				.id(game.getId())
-				.status(game.getStatus())
-				.playersInGame(game.getPlayersInGame())
-				.build();
-	}
+    public GameDetails(PersistentGame game) {
+        this.id = game.getGameId();
+        this.status = game.getStatus();
+        this.players = game.getOrderedPlayers();
+        this.winners = game.getWinnerList();
+    }
 
 }

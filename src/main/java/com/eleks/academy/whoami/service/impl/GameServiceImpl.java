@@ -1,236 +1,223 @@
 package com.eleks.academy.whoami.service.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import com.eleks.academy.whoami.core.exception.GameException;
-import com.eleks.academy.whoami.core.impl.PersistentPlayer;
-import com.eleks.academy.whoami.core.state.ProcessingQuestion;
-import com.eleks.academy.whoami.core.state.WaitingForPlayers;
-import com.eleks.academy.whoami.model.request.Question;
-import com.eleks.academy.whoami.model.request.QuestionAnswer;
-import com.eleks.academy.whoami.model.response.*;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
-import com.eleks.academy.whoami.core.SynchronousGame;
-import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.core.exception.GameNotFoundException;
-import com.eleks.academy.whoami.core.exception.PlayerAlreadyInGameException;
-import com.eleks.academy.whoami.core.exception.PlayerNotFoundException;
+import com.eleks.academy.whoami.core.exception.GameStateException;
 import com.eleks.academy.whoami.core.impl.PersistentGame;
-import com.eleks.academy.whoami.core.state.SuggestingCharacters;
+import com.eleks.academy.whoami.core.impl.PersistentPlayer;
+import com.eleks.academy.whoami.enums.GameStatus;
+import com.eleks.academy.whoami.enums.QuestionAnswer;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
+import com.eleks.academy.whoami.model.request.Message;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
+import com.eleks.academy.whoami.model.response.GameDetails;
+import com.eleks.academy.whoami.model.response.PlayerDetails;
+import com.eleks.academy.whoami.model.response.TurnDetails;
 import com.eleks.academy.whoami.repository.GameRepository;
+import com.eleks.academy.whoami.core.impl.HistoryChat;
 import com.eleks.academy.whoami.service.GameService;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static com.eleks.academy.whoami.enums.Constants.ROOM_NOT_FOUND_BY_ID;
 
 @Service
 @RequiredArgsConstructor
 public class GameServiceImpl implements GameService {
 
-	private final GameRepository gameRepository;
+    private final GameRepository gameRepository;
 
-	@Override
-	public Optional<List<GameLight>> findAvailableGames(String player) {
-		return Optional.ofNullable(this.gameRepository.findAllAvailable(player).map(GameLight::of).toList());
-	}
+    @Override
+    public List<PersistentGame> findAvailableGames() {
+        return this.gameRepository.findAllAvailable();
+    }
 
-	@Override
-	public GameDetails createGame(String player, NewGameRequest gameRequest) {
-		final var game = this.gameRepository.save(new PersistentGame(player, gameRequest.getMaxPlayers()));
+    @Override
+    public GameDetails findGameById(String id) {
+        return new GameDetails(checkGameExistence(id));
+    }
 
-		return GameDetails.of(game);
-	}
+    @Override
+    public Optional<TurnDetails> findTurnInfo(String id, String player) {
+        PersistentGame game = checkGameExistence(id);
+        return Optional.of(game.getTurnDetails());
+    }
 
-	//TODO: implement validations for create custom game
-	@Override
-	public Optional<SynchronousPlayer> enrollToGame(String id, String player) {
+    @Override
+    public GameDetails createGame(String playerId, NewGameRequest gameRequest) {
+        List<PersistentGame> availableGames = findAvailableGames();
+        if (availableGames.isEmpty()) {
+            PersistentGame game = new PersistentGame(playerId, gameRequest.getMaxPlayers());
+            return new GameDetails(gameRepository.save(game));
+        } else {
+            PersistentGame game = checkGameExistence(availableGames.get(0).getGameId());
+            if (game.getStatus().equals(GameStatus.WAITING_FOR_PLAYERS)) {
+                game.enrollToGame(playerId);
+            } else {
+                throw new GameStateException("You cannot enroll to this game! All player slots are taken");
+            }
+            return new GameDetails(game);
+        }
+    }
 
-		if (this.gameRepository.findPlayerByHeader(player).isPresent()) {
-			throw new PlayerAlreadyInGameException("ENROLL-TO-GAME: [" + player + "] already in other game.");
-		} else this.gameRepository.savePlayer(player);
-		return Optional.ofNullable(this.gameRepository.findById(id).get().enrollToGame(player));
-	}
+    @Override
+    public PlayerDetails enrollToGame(String gameId, String playerId) {
+        PersistentGame game = checkGameExistence(gameId);
+        if (game.getStatus().equals(GameStatus.WAITING_FOR_PLAYERS)) {
+            return game.enrollToGame(playerId);
+        }
+        throw new GameStateException("You cannot enroll to this game! All player slots are taken");
+    }
 
-	@Override
-	public Optional<GameDetails> findByIdAndPlayer(String id, String player) {
-		return this.gameRepository.findById(id).filter(game -> game.findPlayer(player).isPresent())
-				.map(GameDetails::of);
-	}
+    @Override
+    public void suggestCharacter(String gameId, String player, CharacterSuggestion suggestion) {
+        PersistentGame game = checkGameExistence(gameId);
+        if (game.getStatus().equals(GameStatus.SUGGEST_CHARACTER)) {
+            game.suggestCharacter(player, suggestion);
+        } else {
+            throw new GameStateException("You cannot suggest the character! Current game state is: " + game.getStatus());
+        }
+        if (game.areAllPlayersSuggested()) {
+            startGame(gameId);
+        }
+    }
 
-	/*
-	 *TODO: check gameState
-	 */
-	@Override
-	public Optional<PlayerSuggestion> suggestCharacter(String id, String player, CharacterSuggestion suggestion) {
+    @Override
+    public Optional<GameDetails> startGame(String gameId) {
+        PersistentGame game = checkGameExistence(gameId);
+        switch (game.getStatus()) {
 
-		this.gameRepository.findById(id)
-				.filter(g -> !g.isAvailable() && g.getState() instanceof SuggestingCharacters)
-				.map(game -> game.findPlayer(player))
-				.ifPresentOrElse(p -> p.ifPresentOrElse(then -> then.suggest(suggestion),
-								() -> {
-									throw new PlayerNotFoundException("SUGGESTING_CHARACTERS: [" + player + "] in game with id[" + id + "] not found.");
-								}
-						),
-						() -> {
-							throw new GameNotFoundException("SUGGESTING_CHARACTERS: Game with id[" + id + "] not found.");
-						}
-				);
+            case GAME_IN_PROGRESS -> throw new GameStateException("Game already in progress! Find another one to play!");
 
-		PlayerSuggestion inGamePlayer = PlayerSuggestion.of(gameRepository.findById(id).flatMap(game -> game.findPlayer(player)).get());
-		return Optional.ofNullable(inGamePlayer);
-	}
+            case READY_TO_PLAY -> {
+                game.startGame();
+                return Optional.of(new GameDetails(game));
+            }
 
-	@Override
-	public Optional<StartGameModel> startGame(String id, String player) {
-		return this.gameRepository.findById(id)
-				.filter(g -> g.getState().isReadyToNextState() && g.getState() instanceof SuggestingCharacters)
-				.map(SynchronousGame::start)
-				.map(StartGameModel::of);
-	}
+            case SUGGEST_CHARACTER -> throw new GameStateException("Game can not be started! Players suggesting characters! " +
+                    "Waiting for other players to contribute their characters" +
+                    "Players left: " +
+                    game.getPLayers()
+                            .stream()
+                            .filter(randomPlayer -> !randomPlayer.isSuggestStatus())
+                            .map(PersistentPlayer::getNickname)
+                            .collect(Collectors.toList()));
 
-	@Override
-	public void askQuestion(String id, String player, Question question) {
-		Optional<SynchronousGame> game = this.gameRepository.findById(id);
-		if (game.isPresent() && (game.get().getState() instanceof ProcessingQuestion)){
-			if (game.get().findPlayerInGame(player)) {
-				((ProcessingQuestion) game.get().getState()).askQuestion(player,question);
-			}else {
-				throw new PlayerNotFoundException("Player [" + player + "] not found");
-			}
-		}else {
-			throw new GameNotFoundException("Game with id:" + id + " not found");
-		}
-	}
+            case WAITING_FOR_PLAYERS -> throw new GameStateException("Game can not be started!" +
+                    " Waiting for additional players! " +
+                    "Current players number: " + game.getPLayers().size() + game.getMaxPlayers());
+            default -> throw new GameStateException("Unrecognized state!");
+        }
+    }
 
-	@Override
-	public Optional<TurnDetails> findTurnInfo(String id, String player) {
-		Optional<SynchronousGame> game = this.gameRepository.findById(id);
-		if (game.isPresent() && (game.get().getState() instanceof ProcessingQuestion)) {
-			return ((ProcessingQuestion) game.get().getState()).findTurnInfo();
-		} else {
-			throw new GameNotFoundException("Game with id:" + id + " not found");
-		}
-	}
+    @Override
+    public void askQuestion(String gameId, String player, String message) {
+        PersistentGame game = checkGameExistence(gameId);
+        if (game.getStatus().equals(GameStatus.GAME_IN_PROGRESS)) {
+            game.askQuestion(player, message);
+        }
+    }
 
-	@Override
-	public void submitGuess(String id, String player, Question guess) {
-		Optional<SynchronousGame> game = this.gameRepository.findById(id);
-		if (game.isPresent() && (game.get().getState() instanceof ProcessingQuestion)){
-			if (game.get().findPlayerInGame(player)) {
-				((ProcessingQuestion) game.get().getState()).submitGuess(game.get().findPlayer(player).get(),guess);
-			}else {
-				throw new PlayerNotFoundException("Player [" + player + "] not found");
-			}
-		}else {
-			throw new GameNotFoundException("Game with id:" + id + " not found");
-		}
-	}
+    @Override
+    public void answerQuestion(String gameId, String player, QuestionAnswer answer) {
+        PersistentGame game = checkGameExistence(gameId);
+        if (game.getStatus().equals(GameStatus.GAME_IN_PROGRESS)) {
+            game.answerQuestion(player, answer);
+        }
+    }
 
-	@Override
-	public void answerGuess(String id, String player, QuestionAnswer answer) {
-		Optional<SynchronousGame> game = this.gameRepository.findById(id);
-		if (game.isPresent() && (game.get().getState() instanceof ProcessingQuestion)){
-			if (game.get().findPlayerInGame(player)) {
-				((ProcessingQuestion) game.get().getState()).answerGuess(game.get().findPlayer(player).get(),answer);
-			}else {
-				throw new PlayerNotFoundException("Player [" + player + "] not found");
-			}
-		}else {
-			throw new GameNotFoundException("Game with id:" + id + " not found");
-		}
-	}
+    @Override
+    public void submitGuess(String gameId, String player, Message guess) {
+        PersistentGame game = checkGameExistence(gameId);
+        if (game.getStatus().equals(GameStatus.GAME_IN_PROGRESS)) {
+            game.askGuessingQuestion(player, guess);
+        }
+    }
 
-	@Override
-	public void answerQuestion(String id, String player, QuestionAnswer answer) {
-		Optional<SynchronousGame> game = this.gameRepository.findById(id);
-		if (game.isPresent() && (game.get().getState() instanceof ProcessingQuestion)){
-			if (game.get().findPlayerInGame(player)) {
-				((ProcessingQuestion) game.get().getState()).answerQuestion(game.get().findPlayer(player).get(),answer);
-			}else {
-				throw new PlayerNotFoundException("Player [" + player + "] not found");
-			}
-		}else {
-			throw new GameNotFoundException("Game with id:" + id + " not found");
-		}
-	}
 
-	@Override
-	public Optional<QuickGame> findQuickGame(String player) {
-		
-		if (!this.gameRepository.findPlayerByHeader(player).isPresent()) {
-			Map<String, SynchronousGame> games = gameRepository.findAvailableQuickGames();
-			
-			if (games.isEmpty()) {
-				
-				final SynchronousGame game = gameRepository.save(new PersistentGame(4));
-				enrollToGame(game.getId(), player);
-				
-				return gameRepository.findById(game.getId()).map(QuickGame::of);
-			}
-			
-			var FirstGame = games.keySet().stream().findFirst().get();
-			enrollToGame(games.get(FirstGame).getId(), player);
-			
-			return gameRepository.findById(games.get(FirstGame).getId()).map(QuickGame::of);
-		} else throw new PlayerAlreadyInGameException("QUICK-GAME: [" + player + "] already in other game.");
-	}
+    @Override
+    public void answerGuessingQuestion(String gameId, String playerId, QuestionAnswer answerGuess) {
+        PersistentGame game = checkGameExistence(gameId);
+        if (game.getStatus().equals(GameStatus.GAME_IN_PROGRESS)) {
+            game.answerGuessingQuestion(playerId, answerGuess);
+        }
+        if (game.getPLayers().size() == 1) {
+            this.gameRepository.deleteGame(gameId);
+        }
+    }
 
-	@Override
-	public Optional<LeaveModel> leaveGame(String id, String player) {
-		
-		if (this.gameRepository.findPlayerByHeader(player).isPresent()) {
+    private PersistentGame checkGameExistence(String gameId) {
+        if (gameRepository.findById(gameId).isPresent()) {
+            return gameRepository.findById(gameId).get();
+        }
+        throw new GameNotFoundException(String.format(ROOM_NOT_FOUND_BY_ID, gameId));
+    }
 
-			var game = this.gameRepository.findById(id);
-			
-			if (game.isPresent() && (game.get().getState() instanceof WaitingForPlayers || game.get().getState() instanceof SuggestingCharacters)) {
-				SynchronousPlayer synchronousPlayer = game.get().deletePlayerFromGame(player).get();
-				this.gameRepository.deletePlayerByHeader(player);
+    @Override
+    public HistoryChat gameHistory(String gameId) {
+        PersistentGame game = checkGameExistence(gameId);
+        return game.getHistory();
+    }
 
-				if(game.get().getPlayersInGame().equals("0")){
-					this.gameRepository.deleteGame(game.get());
-				}
+    @Override
+    public void leaveGame(String gameId, String playerId) {
+        PersistentGame game = checkGameExistence(gameId);
+        if (game.getPLayers().size() == 2) {
+            game.makingWinner(playerId);
+        }
+        game.deletePlayer(playerId);
+        if (game.getPLayers().size() <= 3 && !game.getStatus().equals(GameStatus.GAME_IN_PROGRESS) && !game.getStatus().equals(GameStatus.WAITING_FOR_PLAYERS))
+            this.gameRepository.quickDeleteGame(gameId);
+        if (game.getPLayers().size() == 1 && !game.getStatus().equals(GameStatus.WAITING_FOR_PLAYERS))
+            this.gameRepository.deleteGame(gameId);
+    }
 
-				return Optional.of(LeaveModel.of(synchronousPlayer, id));
-				
-			} else throw new GameNotFoundException("Game with id[" + id + "] not found.");
-			
-		} else throw new PlayerNotFoundException("[" + player + "] in game with id[" + id + "] not found.");
+    @Override
+    public List<PersistentGame> findAllGames() {
+        return this.gameRepository.findAllGames();
+    }
 
-	}
+    @Override
+    public int getAllPlayers() {
+        List<PersistentGame> allGames = findAllGames();
+        int allPlayers = 0;
+        if (!allGames.isEmpty()) {
+            for (var game : allGames) {
+                if (game.getPLayers() != null) {
+                    allPlayers += game.getPLayers().size();
+                }
+            }
+        }
+        return allPlayers;
+    }
 
-	@Override
-	public Optional<List<AllFields>> findAllGamesInfo(String player) {
-		return Optional.ofNullable(this.gameRepository.findAllGames(player).map(AllFields::of).toList());
-	}
+    @Override
+    public String getCurrentQuestion(String gameId, String playerId) {
+        PersistentGame game = checkGameExistence(gameId);
+        return game.getCurrentQuestion(playerId);
+    }
 
-	@Override
-	public void changePlayersOnline(String player, int playersOnline) {
-		if(playersOnline <= 0){
-			this.gameRepository.changePlayersOnline(0);
-		}else {
-			this.gameRepository.changePlayersOnline(playersOnline);
-		}
-	}
+    @Override
+    public String getCurrentAnswer(String gameId, String playerId) {
+        PersistentGame game = checkGameExistence(gameId);
+        return game.getCurrentAnswer(playerId);
+    }
 
-	@Override
-	public Optional<Integer> playersOnlineInfo(String player) {
-		return Optional.ofNullable(this.gameRepository.playersOnlineInfo());
-	}
+    @Override
+    public boolean inactivePlayer(String gameId, String playerId) {
+        PersistentGame game = checkGameExistence(gameId);
+        if (game.inactivePlayer(playerId)) {
+            leaveGame(gameId, playerId);
+            return true;
+        }
+        return false;
+    }
 
-	@Override
-	public Optional<Integer> playersInGame(String player, String id) {
-		return Optional.ofNullable(this.gameRepository.findById(id).get().getPlayersList().size());
-	}
-
-	@Override
-	public String clearGame(String player){
-		return this.gameRepository.clearGames(player);
-	}
+    @Override
+    public void clear() {
+        this.gameRepository.clear();
+    }
 }

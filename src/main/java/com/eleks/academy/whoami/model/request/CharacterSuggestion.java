@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 @Data
@@ -12,14 +13,14 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 public class CharacterSuggestion {
 
-	@NotBlank(message = "Nickname may not be blank")
-	@Size(min = 2, max = 50, message = "Nickname must be between 2 and 50 characters long")
-	private String nickname;
+    @NotNull
+    @Size(min = 2, max = 50, message = "nickname length must be between {min} and {max}!")
+    @NotBlank(message = "must not be blank")
+    private String nickname;
 
-	@NotBlank(message = "Character may not be blank")
-	@Size(min = 2, max = 50, message = "Character must be between 2 and 50 characters long")
-	private String character;
-	
-	
+    @NotNull
+    @Size(min = 2, max = 50, message = "character length must be between {min} and {max}!")
+    @NotBlank(message = "must not be blank")
+    private String character;
 
 }

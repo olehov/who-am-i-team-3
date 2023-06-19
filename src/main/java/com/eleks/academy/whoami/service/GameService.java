@@ -1,51 +1,55 @@
 package com.eleks.academy.whoami.service;
 
+import com.eleks.academy.whoami.core.impl.PersistentGame;
+import com.eleks.academy.whoami.enums.QuestionAnswer;
+import com.eleks.academy.whoami.model.request.CharacterSuggestion;
+import com.eleks.academy.whoami.model.request.Message;
+import com.eleks.academy.whoami.model.request.NewGameRequest;
+import com.eleks.academy.whoami.model.response.GameDetails;
+import com.eleks.academy.whoami.model.response.PlayerDetails;
+import com.eleks.academy.whoami.model.response.TurnDetails;
+import com.eleks.academy.whoami.core.impl.HistoryChat;
+
 import java.util.List;
 import java.util.Optional;
 
-import com.eleks.academy.whoami.core.SynchronousPlayer;
-import com.eleks.academy.whoami.model.request.CharacterSuggestion;
-import com.eleks.academy.whoami.model.request.NewGameRequest;
-import com.eleks.academy.whoami.model.request.Question;
-import com.eleks.academy.whoami.model.request.QuestionAnswer;
-import com.eleks.academy.whoami.model.response.*;
-
 public interface GameService {
 
-	Optional<List<GameLight>> findAvailableGames(String player);
+    List<PersistentGame> findAvailableGames();
 
-	GameDetails createGame(String player, NewGameRequest gameRequest);
+    GameDetails createGame(String player, NewGameRequest gameRequest);
 
-	Optional<SynchronousPlayer> enrollToGame(String id, String player);
+    PlayerDetails enrollToGame(String gameId, String playerId);
 
-	Optional<GameDetails> findByIdAndPlayer(String id, String player);
+    GameDetails findGameById(String id);
 
-	Optional<PlayerSuggestion> suggestCharacter(String id, String player, CharacterSuggestion suggestion);
+    void suggestCharacter(String gameId, String player, CharacterSuggestion suggestion);
 
-	Optional<StartGameModel> startGame(String id, String player);
+    Optional<GameDetails> startGame(String gameId);
 
-	void askQuestion(String id, String player, Question question);
+    void askQuestion(String gameId, String player, String message);
 
-	Optional<TurnDetails> findTurnInfo(String id, String player);
+    Optional<TurnDetails> findTurnInfo(String id, String player);
 
-	void submitGuess(String id, String player, Question guess);
+    void submitGuess(String id, String player, Message guess);
 
-	void answerGuess(String id, String player, QuestionAnswer answer);
+    void answerQuestion(String id, String player, QuestionAnswer answer);
 
-	void answerQuestion(String id, String player, QuestionAnswer answer);
+    HistoryChat gameHistory(String gameId);
 
-	Optional<QuickGame> findQuickGame(String player);
+    void answerGuessingQuestion(String id, String playerId, QuestionAnswer answer);
 
-	Optional<LeaveModel> leaveGame(String id, String player);
+    void leaveGame(String gameId, String playerId);
 
-	Optional<List<AllFields>> findAllGamesInfo(String player);
+    int getAllPlayers();
 
-	void changePlayersOnline(String player, int playersOnline);
+    List<PersistentGame> findAllGames();
 
-	Optional<Integer> playersInGame(String player, String id);
+    String getCurrentQuestion(String gameId, String playerId);
 
-	Optional<Integer> playersOnlineInfo(String player);
+    String getCurrentAnswer(String gameId, String playerId);
 
-	public String clearGame(String player);
-	
+    boolean inactivePlayer(String gameId, String playerId);
+
+    void clear();
 }

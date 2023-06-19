@@ -6,3 +6,13 @@ server:
 game:
   port: 2000
   players: 4
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/Who-Am-I
+    username: postgres
+    password: admin
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate

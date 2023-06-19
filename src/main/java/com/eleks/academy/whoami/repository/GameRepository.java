@@ -1,35 +1,23 @@
 package com.eleks.academy.whoami.repository;
 
-import com.eleks.academy.whoami.core.SynchronousGame;
+import com.eleks.academy.whoami.core.impl.PersistentGame;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public interface GameRepository {
 
-	Stream<SynchronousGame> findAllAvailable(String player);
+    List<PersistentGame> findAllAvailable();
 
-	SynchronousGame save(SynchronousGame game);
+    PersistentGame save(PersistentGame game);
 
-	Optional<SynchronousGame> findById(String id);
+    Optional<PersistentGame> findById(String id);
 
-	Map<String, SynchronousGame> findAvailableQuickGames();
+    List<PersistentGame> findAllGames();
 
-	Optional<String> findPlayerByHeader(String player);
+    void deleteGame(String gameId);
 
-	void savePlayer(String player);
+    void quickDeleteGame(String gameId);
 
-	void deletePlayerByHeader(String player);
-
-	Stream<SynchronousGame> findAllGames(String player);
-
-	void changePlayersOnline(int playersOnline);
-
-	int playersOnlineInfo();
-
-	String clearGames(String player);
-
-	void deleteGame(SynchronousGame game);
-
+    void clear();
 }

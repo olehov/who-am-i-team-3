@@ -1,96 +1,65 @@
 package com.eleks.academy.whoami.repository.impl;
 
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import com.eleks.academy.whoami.model.response.HomePageInfo;
+import com.eleks.academy.whoami.core.exception.GameNotFoundException;
+import com.eleks.academy.whoami.core.impl.PersistentGame;
+import com.eleks.academy.whoami.enums.GameStatus;
+import com.eleks.academy.whoami.repository.GameRepository;
 import org.springframework.stereotype.Repository;
 
-import com.eleks.academy.whoami.core.SynchronousGame;
-import com.eleks.academy.whoami.repository.GameRepository;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Repository
 public class GameInMemoryRepository implements GameRepository {
 
-	private final Map<String, SynchronousGame> games = new ConcurrentHashMap<>();
+    private final List<PersistentGame> games = new ArrayList<>();
 
-	private final Map<String, String> players = new ConcurrentHashMap<>();
+    @Override
+    public List<PersistentGame> findAllAvailable() {
+        return this.games.stream()
+                .filter(game -> game.getStatus().equals(GameStatus.WAITING_FOR_PLAYERS))
+                .collect(Collectors.toList());
+    }
 
-	private final HomePageInfo homeInfo = new HomePageInfo();
+    @Override
+    public PersistentGame save(PersistentGame game) {
+        this.games.add(game);
+        return game;
+    }
 
-	@Override
-	public Stream<SynchronousGame> findAllAvailable(String player) {
-		return games.values().stream().filter(SynchronousGame::isAvailable);
-	}
+    @Override
+    public Optional<PersistentGame> findById(String gameId) {
+        return Optional.ofNullable(this.games
+                .stream()
+                .filter(game -> game.getGameId().equals(gameId))
+                .findFirst()
+                .orElseThrow(() -> new GameNotFoundException("Game not found!")));
+    }
 
-	public Stream<SynchronousGame> findAllGames(String player) {
-		return this.games.values().stream();
-	}
+    @Override
+    public List<PersistentGame> findAllGames() {
+        return this.games;
+    }
 
-	@Override
-	public SynchronousGame save(SynchronousGame game) {
-		this.games.put(game.getId(), game);
+    @Override
+    public void deleteGame(String gameId) {
+        try {
+            Thread.sleep(7_000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        this.games.removeIf(game -> game.getGameId().equals(gameId));
+    }
 
-		return game;
-	}
+    public void quickDeleteGame (String gameId){
+        this.games.removeIf(game -> game.getGameId().equals(gameId));
+    }
 
-	@Override
-	public Optional<SynchronousGame> findById(String id) {
-		return Optional.ofNullable(this.games.get(id));
-	}
+    @Override
+    public void clear() {
+        this.games.clear();
+    }
 
-	@Override
-	public Optional<String> findPlayerByHeader(String player) {
-		return Optional.ofNullable(this.players.get(player));
-	}
-
-	@Override
-	public void savePlayer(String player) {
-		this.players.put(player, player);
-	}
-
-	@Override
-	public void deletePlayerByHeader(String player) {
-		this.players.remove(player);
-	}
-
-	@Override
-	public Map<String, SynchronousGame> findAvailableQuickGames() {
-		return filterByValue(games, SynchronousGame::isAvailable);
-	}
-
-	private static <K, V> Map<K, V> filterByValue(Map<K, V> map, Predicate<V> predicate) {
-		return map.entrySet()
-				.stream()
-				.filter(entry -> predicate.test(entry.getValue()))
-				.collect(Collectors.toConcurrentMap(Entry::getKey, Entry::getValue));
-	}
-
-	@Override
-	public void changePlayersOnline(int playersOnline) {
-		this.homeInfo.setPlayersOnline(playersOnline);
-	}
-
-	@Override
-	public int playersOnlineInfo() {
-		return this.players.size();
-	}
-
-	@Override
-	public String clearGames(String player) {
-		this.homeInfo.setPlayersOnline(0);
-		this.players.clear();
-		this.games.clear();
-		return "Games is cleared";
-	}
-
-	@Override
-	public void deleteGame(SynchronousGame game){
-		this.games.remove(game.getId());
-	}
 }
