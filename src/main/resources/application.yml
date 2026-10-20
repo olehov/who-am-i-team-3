@@ -9,9 +9,9 @@ game:
 
 spring:
   datasource:
-    url: jdbc:postgresql://postgresql-132317-0.cloudclusters.net:10002/Who_Am_I
-    username: user
-    password: userAdmin
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: validate
